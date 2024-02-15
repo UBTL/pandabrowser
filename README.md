@@ -1,11 +1,6 @@
 # PandaBrowser
 An offline E-hentai browser for archival purposes, keeping Hentai history around.
 
-# E-Hentai DB
-
-Just another E-Hentai metadata database
-
-
 ## Requirements
 
 - Node.js 8+
@@ -248,7 +243,7 @@ Over frontend folder, there the pandathumbnails folder should be located at.
 
 ## Thanks to
 
-- [Sachia Lanlus](https://forums.e-hentai.org/index.php?showuser=2351915), as he collects almost all the gallery metadatas before Ex went down initially and share the [`gdata.json`](https://forums.e-hentai.org/index.php?showtopic=201268&st=67900&p=5474857&#entry5474857) that kickstarted all these projects.
+- [Sachia Lanlus](https://forums.e-hentai.org/index.php?showuser=2351915), as he collects almost all the gallery metadatas before Ex went down initially and share the [gdata.json](https://forums.e-hentai.org/index.php?showtopic=201268&st=67900&p=5474857&#entry5474857) that kickstarted all these projects.
 
 - [Tlaster / ehdb](https://github.com/Tlaster/ehdb), the table structures are based on his SQLite database, as I've almost forgot how to handle the tag list with gallery
 
