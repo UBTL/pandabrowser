@@ -1,0 +1,55 @@
+{
+  "name": "e-hentai-db",
+  "version": "0.3.1",
+  "private": true,
+  "description": "E-Hentai Database",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "import": "node ./scripts/import.js",
+    "sync": "node ./scripts/sync.js",
+    "resync": "node ./scripts/resync.js",
+    "torrent-import": "node ./scripts/torrent.js",
+    "torrent-sync": "node ./scripts/torrentsync.js",
+    "mark-replaced": "node ./scripts/markreplaced.js",
+    "fetch": "node ./scripts/fetch.js",
+    "lint": "eslint src/**/*.js app/**/*.js",
+    "build": "env NODE_ENV=production webpack -p --env.prod --progress",
+    "dev": "webpack-dev-server --inline --progress -d --watch --hot",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ccloli",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql": "^2.18.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.23.0",
+    "@babel/plugin-transform-runtime": "^7.22.15",
+    "@babel/preset-env": "^7.22.20",
+    "@babel/preset-react": "^7.0.0",
+    "abortcontroller-polyfill": "^1.3.0",
+    "babel-loader": "^8.0.6",
+    "css-loader": "^3.1.0",
+    "eslint": "^6.1.0",
+    "eslint-plugin-react": "^7.14.3",
+    "eslint-plugin-react-hooks": "^1.6.1",
+    "html-webpack-plugin": "^3.2.0",
+    "mini-css-extract-plugin": "^0.8.0",
+    "moment": "^2.29.4",
+    "optimize-css-assets-webpack-plugin": "^5.0.4",
+    "react": "^16.8.6",
+    "react-dom": "^16.8.6",
+    "react-hot-loader": "^4.12.10",
+    "react-router-dom": "^5.0.1",
+    "style-loader": "^0.23.1",
+    "webpack": "^4.39.1",
+    "webpack-bundle-analyzer": "^3.4.1",
+    "webpack-cli": "^3.3.6",
+    "webpack-dev-server": "^3.11.0"
+  },
+  "optionalDependencies": {
+    "core-js": "^3.2.0"
+  }
+}
