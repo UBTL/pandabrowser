@@ -16,9 +16,9 @@ services:
     image: node:22-alpine
     working_dir: /app
     ## --[ Alternative commands (have only one uncommented) ]--
-    command: npm start
+    command: /bin/sh -c 'yarn && npm start'
     ## --[ webpack-dev-server ]--
-    #command: sh -c 'npm start & npm run dev'
+    #command: sh -c 'yarn && (npm start & npm run dev)'
     ## to run webpack in docker edit webpack.config.js, add
     ## under devServer `host: '0.0.0.0', disableHostCheck: true,`,
     ## for thumbs proxy /pandathumbs same as /api, then expose 8080
