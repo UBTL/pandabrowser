@@ -28,7 +28,7 @@ services:
     #  - NET_ADMIN  # required to config firewall within the container
     ## --[ /commands ]--
     ports:
-      - "6969:6969"
+      - "6969:8880"
       #- "8080:8080"
     volumes:
       - ./:/app
