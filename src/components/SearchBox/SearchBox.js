@@ -3,7 +3,7 @@ import categoryList from '../../util/category';
 import styles from './SearchBox.css';
 import moment from 'moment';
 
-const SearchBox = ({ options, onSearch }) => {
+const SearchBox = ({ options = {}, onSearch }) => {
 	const [category, setCategory] = useState(+options.category || 1023);
 	const [keyword, setKeyword] = useState(options.keyword || '');
 	const [expunged, setExpunged] = useState(+options.expunged || 0);
@@ -112,7 +112,7 @@ const SearchBox = ({ options, onSearch }) => {
 				))}
 			</div>
 			<div className={styles.search}>
-				<input value={keyword} onInput={updateKeyword} className={styles.input} />
+				<input value={keyword} onChange={updateKeyword} className={styles.input} />
 				<button className={styles.button}>Search</button>
 			</div>
 			<div className={styles.toggle}>
@@ -170,10 +170,6 @@ const SearchBox = ({ options, onSearch }) => {
 			) : null}
 		</form>
 	);
-};
-
-SearchBox.defaultProps = {
-	options: {}
 };
 
 export default SearchBox;
