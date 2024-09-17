@@ -92,7 +92,7 @@ const Home = ({ history }) => {
 		<div className={styles.container}>
 			<SearchBox options={query} search={history.location.search} onSearch={onSearch} />
 			<p className={styles.total} ref={totalStatus}>
-				{loading ? 'Loading...' : `Matches ${total} ${total > 1 ? 'results' : 'result'}.`}
+				{loading ? 'Loading...' : `Matches ${total?.toLocaleString()} ${total > 1 ? 'results' : 'result'}.`}
 			</p>
 			{list.length ? (
 				<>
