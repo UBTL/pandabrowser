@@ -7,8 +7,28 @@ An offline E-hentai browser for archival purposes, keeping Hentai history around
 
 - MySQL 5.3+ / MariaDB 10+
 
+- Docker (optional)
 
-## Setup & Start Up
+## Setup & Start Up using docker-compose
+
+    # change dbHost to point to docker db container (or edit config.js manually)
+    sed -i 's,localhost,mariadb,' config.js
+
+    # run it
+    docker-compose up -d
+
+Docker installs mariadb+node images (<1GB total, to see what they contain try `docker history mariadb:lts`), it inserts SQL on first startup (takes a minute, DB persists on restart) and then starts app which accepts connections on http://localhost:6969/
+
+If you're paranoid about app making undesired outgoing connection there's an alternate startup command in docker-compose.yml which sets up a firewall within the container (ofc then you also can't run sync script from the container).
+
+To interact with the containers:
+
+    # query db
+    docker exec -it pandabrowser_mariadb_1 mariadb -p69 panda
+    # run scripts
+    docker exec -it pandabrowser_app_1 npm run fetch
+
+## Setup & Start Up manually
 
 1. Install the provided database file (panda_2024_01_01.sql) into MySQL, the default database name being "panda" here.
 
