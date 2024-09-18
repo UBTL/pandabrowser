@@ -3,19 +3,39 @@ import categoryList from '../../util/category';
 import styles from './SearchBox.css';
 import moment from 'moment';
 
-const SearchBox = ({ options, onSearch }) => {
-	const [category, setCategory] = useState(+options.category || 1023);
-	const [keyword, setKeyword] = useState(options.keyword || '');
-	const [expunged, setExpunged] = useState(+options.expunged || 0);
-	const [replaced, setReplaced] = useState(+options.replaced || 0);
-	const [removed, setRemoved] = useState(+options.removed || 0);
-	const [minpage, setMinPage] = useState(options.minpage || '');
-	const [maxpage, setMaxPage] = useState(options.maxpage || '');
-	const [minrating, setMinRating] = useState(options.minrating || '');
-	const [limit, setLimit] = useState(options.limit || 10);
-	const [mindate, setMinDate] = useState(options.mindate || '');
-	const [maxdate, setMaxDate] = useState(options.maxdate || '');
-	const [showAdvance, setShowAdvance] = useState(+options.advance || 0);
+const SearchBox = ({ options: passedOptions = {}, onSearch }) => {
+	const defaultOptions = {
+		category: 1023,
+		keyword: '',
+		expunged: 0,
+		replaced: 0,
+		removed: 0,
+		minpage: '',
+		maxpage: '',
+		minrating: '',
+		limit: 10,
+		mindate: '',
+		maxdate: '',
+		advance: 0,
+	};
+	const storedOptions = JSON.parse(localStorage.getItem('searchOptions')) || {};
+	const options = {
+		...defaultOptions,
+		...storedOptions,
+		...passedOptions
+	};
+	const [category, setCategory] = useState(+options.category);
+	const [keyword, setKeyword] = useState(options.keyword);
+	const [expunged, setExpunged] = useState(+options.expunged);
+	const [replaced, setReplaced] = useState(+options.replaced);
+	const [removed, setRemoved] = useState(+options.removed);
+	const [minpage, setMinPage] = useState(options.minpage);
+	const [maxpage, setMaxPage] = useState(options.maxpage);
+	const [minrating, setMinRating] = useState(options.minrating);
+	const [limit, setLimit] = useState(options.limit);
+	const [mindate, setMinDate] = useState(options.mindate);
+	const [maxdate, setMaxDate] = useState(options.maxdate);
+	const [showAdvance, setShowAdvance] = useState(+options.advance);
 
 	const updateCategory = (event) => {
 		const value = +event.target.value;
@@ -66,6 +86,23 @@ const SearchBox = ({ options, onSearch }) => {
 		setShowAdvance(!showAdvance);
 	};
 
+	const saveDefaultOptions = () => {
+		localStorage.setItem('searchOptions', JSON.stringify({
+			category,
+			keyword,
+			expunged,
+			replaced,
+			removed,
+			minpage,
+			maxpage,
+			minrating,
+			limit,
+			mindate,
+			maxdate,
+			advance: +showAdvance,
+		}));
+	};
+
 	const onSubmit = (event) => {
 		event.preventDefault();
 		if (onSearch) {
@@ -85,21 +122,6 @@ const SearchBox = ({ options, onSearch }) => {
 			});
 		}
 	};
-	
-	useEffect(() => {
-		setCategory(+options.category || 1023);
-		setKeyword(options.keyword || '');
-		setExpunged(+options.expunged || 0);
-		setReplaced(+options.replaced || 0);
-		setRemoved(+options.removed || 0);
-		setMinPage(options.minpage || '');
-		setMaxPage(options.maxpage || '');
-		setMinRating(options.minrating || '');
-		setLimit(options.limit || 10);
-		setMinDate(options.mindate || '');
-		setMaxDate(options.maxdate || '');
-		setShowAdvance(+options.advance || 0);
-	}, [options]);
 
 	return (
 		<form className={styles.container} onSubmit={onSubmit}>
@@ -112,12 +134,16 @@ const SearchBox = ({ options, onSearch }) => {
 				))}
 			</div>
 			<div className={styles.search}>
-				<input value={keyword} onInput={updateKeyword} className={styles.input} />
+				<input value={keyword} onChange={updateKeyword} className={styles.input} />
 				<button className={styles.button}>Search</button>
 			</div>
 			<div className={styles.toggle}>
 				<a onClick={toggleAdvance}>
 					{showAdvance ? 'Hide Advanced Options' : 'Show Advanced Options'}
+				</a>
+				<span> | </span>
+				<a onClick={saveDefaultOptions}>
+					Save options as default
 				</a>
 			</div>
 			{showAdvance ? (
@@ -170,10 +196,6 @@ const SearchBox = ({ options, onSearch }) => {
 			) : null}
 		</form>
 	);
-};
-
-SearchBox.defaultProps = {
-	options: {}
 };
 
 export default SearchBox;

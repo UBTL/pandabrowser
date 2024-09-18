@@ -6,6 +6,11 @@ const TerserJSPlugin = require('terser-webpack-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 // const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
+// TODO: upgrade webpack (v4 is 5y old, it prefers 5y old node)
+const crypto = require("crypto");
+const crypto_orig_createHash = crypto.createHash;
+crypto.createHash = algorithm => crypto_orig_createHash(algorithm == "md4" ? "sha256" : algorithm);
+
 module.exports = ({ prod = false } = {}) => ({
 	entry: [
 		...(!prod ? [
@@ -35,6 +40,7 @@ module.exports = ({ prod = false } = {}) => ({
 				test: /\.jsx?$/,
 				exclude: /node_modules/,
 				loader: 'babel-loader',
+				options: { presets: ['@babel/env','@babel/preset-react'] },
 			},
 			{
 				test: /\.css$/,
@@ -89,12 +95,17 @@ module.exports = ({ prod = false } = {}) => ({
 	} : {
 		devServer: {
 			hot: true,
+			//host: '0.0.0.0',
+			//disableHostCheck: true,
 			historyApiFallback: true,
 			overlay: {
 				warnings: true,
 				errors: true,
 			},
 			proxy: {
+				'/pandathumbs': {
+					target: `http://127.0.1:${require('./config').port}`,
+				},
 				'/api': {
 					target: `http://127.0.0.1:${require('./config').port}`,
 					secure: false,

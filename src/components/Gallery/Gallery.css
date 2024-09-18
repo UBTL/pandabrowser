@@ -1,6 +1,7 @@
 .container {
 	padding: 15px;
 	display: flex;
+	font-family: sans-serif;
 }
 
 .coverWrap {
