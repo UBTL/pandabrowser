@@ -1,0 +1,5 @@
+node_modules
+frontend/pandathumbs
+mariadb
+dist
+*.sql.gz
