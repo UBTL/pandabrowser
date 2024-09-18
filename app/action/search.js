@@ -49,7 +49,7 @@ const search = async (req, res) => {
 
 		const exclude = value[0] === '-';
 		const or = value[0] === '~';
-		if (exclude || or) {
+		if (or) {
 			value = value.substr(1);
 		}
 
@@ -164,24 +164,24 @@ const search = async (req, res) => {
 
 		let excTable;
 		if (tags.exc.length || tags.notLike.length) {
+			const exc = [...new Set(tags.exc)];
+			const notLike = [...new Set(tags.notLike)];
 			excTable = conn.connection.format(
 				`(
 					SELECT a.* FROM gid_tid AS a INNER JOIN (
 						SELECT id FROM tag WHERE ${[
-							tags.inc.length && conn.connection.format('name IN (?)', [tags.exc]),
-							tags.like.length && tags.like.map(e => conn.connection.format('name LIKE ?', [e])).join(' OR ')
+							exc.length && conn.connection.format('name IN (?)', [exc]),
+							notLike.length && notLike.map(e => conn.connection.format('name LIKE ?', [e])).join(' OR ')
 						].filter(e => e).join(' OR ')}
-					) AS b ON a.tid = b.id
-				)`
+					) AS b ON a.tid = b.id GROUP BY a.gid HAVING COUNT(a.gid) >= ? ORDER BY NULL
+				)`,
+				[exc.length + notLike.reduce((pre, e) => {
+					if (exc.some(i => i.includes(e.replace(/%/g, '')))) {
+						return pre;
+					}
+					return pre + 1;
+				}, 0)]
 			);
-			// if (table) {
-			// 	table = `gallery LEFT JOIN ${excTable} AS t ON gallery.gid = t.gid WHERE t.gid IS NULL`;
-			// }
-			// else {
-			// 	table = `(
-			// 		SELECT a.* FROM gid_tid AS a LEFT JOIN ${excTable} AS b ON a.gid = b.gid WHERE b.gid IS NULL
-			// 	)`;
-			// }
 		}
 		if (excTable && !table) {
 			table = `gallery LEFT JOIN ${excTable} AS t ON gallery.gid = t.gid`;
