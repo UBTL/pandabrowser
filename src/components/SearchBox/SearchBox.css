@@ -5,7 +5,7 @@
 	margin-top: 20px;
 	text-align: center;
 	width: 720px;
-	margin: 0 auto 30px;
+	margin: 0 auto 10px;
 	-webkit-user-select: none;
 	-moz-user-select: none;
 	-ms-user-select: none;
@@ -119,4 +119,11 @@
 
 .toggle {
 	margin-bottom: 5px;
+}
+
+.imagePreview {
+    display: none;
+    float: left;
+    margin: 10px 0;
+    width: 240px;
 }

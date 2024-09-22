@@ -9,6 +9,9 @@ const Home = ({ history }) => {
 	const [list, setList] = useState([]);
 	const [loading, setLoading] = useState(false);
 	const [total, setTotal] = useState(null);
+	const [startTime, setStartTime] = useState(null);
+	const [endTime, setEndTime] = useState(null);
+	const [isPagerVisible, setPagerVisible] = useState(false);
 	const aborter = useRef();
 	const totalStatus = useRef();
 
@@ -17,7 +20,10 @@ const Home = ({ history }) => {
 	const totalPage = Math.ceil(total / limit);
 
 	const getList = () => {
+		document.querySelector('#imagePreview').style.display = 'none';
+		setPagerVisible(false);
 		setLoading(true);
+		setStartTime(Date.now());
 		if (aborter.current) {
 			aborter.current.abort();
 		}
@@ -29,7 +35,7 @@ const Home = ({ history }) => {
 		fetch(`/api/search${history.location.search}`, { signal }).then(res => res.json()).then((res) => {
 			const { data, total, code, message } = res;
 			aborter.current = null;
-			setLoading(false);
+			setEndTime(Date.now());
 
 			if (code !== 200) {
 				alert('Request error: ' + (message || 'unknown'));
@@ -38,6 +44,7 @@ const Home = ({ history }) => {
 
 			setList(data);
 			setTotal(total);
+			setLoading(false);
 			if (totalStatus.current) {
 				totalStatus.current.scrollIntoView({
 					behavior: 'smooth',
@@ -65,6 +72,33 @@ const Home = ({ history }) => {
 		history.push(`/?${queryString.stringify(sortedOptions)}`);
 	};
 
+	const onFileSearch = (formData) => {
+		setPagerVisible(true);
+		setLoading(true);
+		setStartTime(Date.now());
+		fetch('/api/searchImage', {
+			method: 'POST',
+			body: formData,
+		})
+		.then(response => {
+			setLoading(false);
+			setEndTime(Date.now());
+			if (response.ok) {
+				return response.json();
+			}
+			throw new Error('File upload failed');
+		})
+		.then(res => {
+			const { data, total, code, message } = res;
+			console.log('Success:', res);
+			setList(data);
+			setTotal(data.length);
+		})
+		.catch(error => {
+			console.error('Error:', error);
+		});
+	};
+
 	const setPage = (page) => {
 		onSearch({ ...query, page });
 	};
@@ -90,15 +124,16 @@ const Home = ({ history }) => {
 
 	return (
 		<div className={styles.container}>
-			<SearchBox options={query} search={history.location.search} onSearch={onSearch} />
+			<SearchBox options={query} search={history.location.search} onSearch={onSearch} onFileSearch={onFileSearch} />
 			<p className={styles.total} ref={totalStatus}>
-				{loading ? 'Loading...' : `Matches ${total?.toLocaleString()} ${total > 1 ? 'results' : 'result'}.`}
+				{loading ? 'Loading...' : `Matches ${total?.toLocaleString()} ${total > 1 ? 'results' : 'result'}`}
+				{!loading && <span> ({(endTime - startTime) / 1000} sec)</span>}
 			</p>
 			{list.length ? (
 				<>
-					<Pager page={+page} total={totalPage} onChange={setPage} />
+					{!isPagerVisible && <Pager page={+page} total={totalPage} onChange={setPage} />}
 					<List list={list} loading={loading} onSearch={onGallerySearch} />
-					<Pager page={+page} total={totalPage} onChange={setPage} />
+					{!isPagerVisible && <Pager page={+page} total={totalPage} onChange={setPage} />}
 				</>
 			) : null}
 		</div>
