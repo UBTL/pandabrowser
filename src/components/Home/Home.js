@@ -21,7 +21,7 @@ const Home = ({ history }) => {
 
 	const getList = () => {
 		document.querySelector('#imagePreview').style.display = 'none';
-		setPagerVisible(false);
+		setPagerVisible(true);
 		setLoading(true);
 		setStartTime(Date.now());
 		if (aborter.current) {
@@ -73,7 +73,7 @@ const Home = ({ history }) => {
 	};
 
 	const onFileSearch = (formData) => {
-		setPagerVisible(true);
+		setPagerVisible(false);
 		setLoading(true);
 		setStartTime(Date.now());
 		fetch('/api/searchImage', {
@@ -131,9 +131,9 @@ const Home = ({ history }) => {
 			</p>
 			{list.length ? (
 				<>
-					{!isPagerVisible && <Pager page={+page} total={totalPage} onChange={setPage} />}
+					{isPagerVisible && <Pager page={+page} total={totalPage} onChange={setPage} />}
 					<List list={list} loading={loading} onSearch={onGallerySearch} />
-					{!isPagerVisible && <Pager page={+page} total={totalPage} onChange={setPage} />}
+					{isPagerVisible && <Pager page={+page} total={totalPage} onChange={setPage} />}
 				</>
 			) : null}
 		</div>
