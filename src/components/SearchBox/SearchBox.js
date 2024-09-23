@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import categoryList from '../../util/category';
 import styles from './SearchBox.css';
 import moment from 'moment';
 
-const SearchBox = ({ options: passedOptions = {}, onSearch }) => {
+const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 	const defaultOptions = {
 		category: 1023,
 		keyword: '',
@@ -17,6 +17,7 @@ const SearchBox = ({ options: passedOptions = {}, onSearch }) => {
 		mindate: '',
 		maxdate: '',
 		advance: 0,
+		fileSearch: 0,
 	};
 	const storedOptions = JSON.parse(localStorage.getItem('searchOptions')) || {};
 	const options = {
@@ -36,6 +37,7 @@ const SearchBox = ({ options: passedOptions = {}, onSearch }) => {
 	const [mindate, setMinDate] = useState(options.mindate);
 	const [maxdate, setMaxDate] = useState(options.maxdate);
 	const [showAdvance, setShowAdvance] = useState(+options.advance);
+	const [showFileSearch, setShowFileSearch] = useState(+options.fileSearch);
 
 	const updateCategory = (event) => {
 		const value = +event.target.value;
@@ -82,8 +84,25 @@ const SearchBox = ({ options: passedOptions = {}, onSearch }) => {
 		setMaxDate(Math.floor(moment(event.target.value).valueOf() / 1000));
 	};
 
+	const updateFileSearch = (event) => {
+		const file = event.target.files[0];
+		if (file) {
+			const reader = new FileReader();
+			reader.onload = function(e) {
+				const imgPreview = document.getElementById('imagePreview');
+				imgPreview.src = e.target.result;
+				imgPreview.style.display = 'block';
+			};
+			reader.readAsDataURL(file);
+		}
+	};
+
 	const toggleAdvance = () => {
 		setShowAdvance(!showAdvance);
+	};
+
+	const toggleFileSearch = () => {
+		setShowFileSearch(!showFileSearch);
 	};
 
 	const saveDefaultOptions = () => {
@@ -101,6 +120,17 @@ const SearchBox = ({ options: passedOptions = {}, onSearch }) => {
 			maxdate,
 			advance: +showAdvance,
 		}));
+	};
+
+	const onFileSearchSubmit = (event) => {
+		event.preventDefault();
+		if (onFileSearch) {
+			const fileInput = document.getElementById('searchFile');
+			const file = fileInput.files[0];
+			const formData = new FormData();
+			formData.append('file', file);
+			onFileSearch(formData);
+		}
 	};
 
 	const onSubmit = (event) => {
@@ -124,6 +154,8 @@ const SearchBox = ({ options: passedOptions = {}, onSearch }) => {
 	};
 
 	return (
+		<>
+		<img id="imagePreview" src="" alt="Image Preview" className={styles.imagePreview} />
 		<form className={styles.container} onSubmit={onSubmit}>
 			<div className={styles.category}>
 				{categoryList.filter(e => e.visible !== false).map(e => (
@@ -140,6 +172,10 @@ const SearchBox = ({ options: passedOptions = {}, onSearch }) => {
 			<div className={styles.toggle}>
 				<a onClick={toggleAdvance}>
 					{showAdvance ? 'Hide Advanced Options' : 'Show Advanced Options'}
+				</a>
+				<span> | </span>
+				<a onClick={toggleFileSearch}>
+					{showFileSearch ? 'Hide File Search' : 'Show File Search'}
 				</a>
 				<span> | </span>
 				<a onClick={saveDefaultOptions}>
@@ -195,6 +231,20 @@ const SearchBox = ({ options: passedOptions = {}, onSearch }) => {
 				</div>
 			) : null}
 		</form>
+		{showFileSearch ? (
+			<form className={styles.container} onSubmit={onFileSearchSubmit}>
+				<div>Select a file to upload, then hit File Search. Similarity score is calculated and compared to all the known cover thumbnails.</div>
+				<div className={styles.advance}>
+					<label className={styles.advanceItem}>
+						<input type="file" id="searchFile" onChange={updateFileSearch} />
+					</label>
+					<label className={styles.advanceItem}>
+						<input type="submit" value="File Search" />
+					</label>
+				</div>
+			</form>
+		) : null}
+		</>
 	);
 };
 

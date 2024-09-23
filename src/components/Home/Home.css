@@ -29,4 +29,6 @@ a:hover {
 .total {
 	text-align: center;
 	font-style: italic;
+	width: 720px;
+	margin: 0 auto 10px;
 }
