@@ -32,7 +32,7 @@ To interact with the containers:
 
 0. Run `npm install` (or `yarn` if you prefer)
 
-1. Install the provided database file (panda_2024_01_01.sql) into MySQL, the default database name being "panda" here.
+1. Install the provided database file (20240101-0_init_schema.sql) if you wish a clean version of the program which you will add your own data into or download the released database (panda_2024_01_01.sql) with already data into it and upload it into MySQL, the default database name being "panda" here.
 
 2. Edit `config.js`, set database username, password, database name, etc. if you go with something different.
 
