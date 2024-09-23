@@ -25,10 +25,15 @@ const Gallery = ({
 		tagList[type].push(name);
 	});
 
+	const resolvedThumb = (thumb.includes('/') || thumb.length < 5
+		? thumb
+		: `pandathumbs/${thumb.slice(0,2)}/${thumb.slice(2,4)}/${thumb}`
+	).replace(/_l\./, '_250.')
+
 	return (
 		<div className={styles.container}>
 			<div className={styles.coverWrap}>
-				<img src={thumb.replace(/_l\./, '_250.')} className={styles.cover} />
+				<img src={resolvedThumb} className={styles.cover} />
 			</div>
 			<div className={styles.meta}>
 				<div className={styles.metaSingleItem}>
