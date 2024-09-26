@@ -3,6 +3,7 @@ const config = require('../../config');
 
 class ConnectDB {
 	constructor() {
+		/** @type {import('mysql/lib/Connection')} */
 		this.connection = mysql.createConnection({
 			host: config.dbHost,
 			port: config.dbPort,
@@ -50,6 +51,10 @@ class ConnectDB {
 
 	destroy() {
 		this.connection.destroy();
+	}
+
+	end() {
+		this.connection.end();
 	}
 }
 

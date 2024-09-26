@@ -232,31 +232,37 @@ const search = async (req, res) => {
 		).join(' AND '),
 	].filter(e => e).join(' AND ');
 
-	const result = await conn.query(
-		`SELECT DISTINCT gallery.* FROM ${table} WHERE ${query || 1} ORDER BY gallery.posted DESC LIMIT ? OFFSET ?`,
-		[limit, (page - 1) * limit]
-	);
+	try {
+		const pagedQuery = `SELECT DISTINCT gallery.*,
+				(select thumb from thumbnail where id=gallery.thumbnail_id) thumb
+			FROM ${table} WHERE ${query || 1}
+			ORDER BY gallery.posted DESC LIMIT ? OFFSET ?`;
 
-	const noForceIndexTable = table.replace('FORCE INDEX(posted)', '');
-	const { total } = (await conn.query(`SELECT COUNT(DISTINCT gallery.gid) AS total FROM ${noForceIndexTable} WHERE ${query || 1}`))[0];
+		const result = await conn.query(pagedQuery, [limit, (page - 1) * limit]);
 
-	if (!result.length) {
-		conn.destroy();
-		return res.json(getResponse([], 200, 'success', { total }));
+		const noForceIndexTable = table.replace('FORCE INDEX(posted)', '');
+		const { total } = (await conn.query(`SELECT COUNT(DISTINCT gallery.gid) AS total FROM ${noForceIndexTable} WHERE ${query || 1}`))[0];
+
+		if (!result.length) {
+			return res.json(getResponse([], 200, 'success', { total }));
+		}
+
+		const gids = result.map(e => e.gid);
+		const rootGids = result.map(e => e.root_gid).filter(e => e);
+		const gidTags = await queryTags(conn, gids);
+		const gidTorrents = await queryTorrents(conn, rootGids);
+
+		result.forEach(e => {
+			e.tags = gidTags[e.gid] || [];
+			e.torrents = gidTorrents[e.root_gid] || [];
+		});
+
+		return res.json(getResponse(result, 200, 'success', { total }));
+	} catch (err) {
+		return res.status(500).json(getResponse(null, 500, 'internal server error', { err }));
+	} finally {
+		conn.end();
 	}
-
-	const gids = result.map(e => e.gid);
-	const rootGids = result.map(e => e.root_gid).filter(e => e);
-	const gidTags = await queryTags(conn, gids);
-	const gidTorrents = await queryTorrents(conn, rootGids);
-
-	result.forEach(e => {
-		e.tags = gidTags[e.gid] || [];
-		e.torrents = gidTorrents[e.root_gid] || [];
-	});
-
-	conn.destroy();
-	return res.json(getResponse(result, 200, 'success', { total }));
 };
 
 module.exports = search;
