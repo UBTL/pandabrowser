@@ -6,19 +6,20 @@ services:
     environment:
       MARIADB_ROOT_PASSWORD: 69
       MARIADB_DATABASE: panda
-    # for external access
+    ## for external access
     #ports:
     #  - "3306:3306"
     volumes:
-      - ./panda_2024_01_01.sql.gz:/docker-entrypoint-initdb.d/1.sql.gz
       - ./mariadb:/var/lib/mysql
+    ## on first ever run use this to restore db from a dump
+    #  - ./panda_2024_01_01.sql.gz:/docker-entrypoint-initdb.d/1.sql.gz
   app:
     image: node:22-alpine
     working_dir: /app
     ## --[ Alternative commands (have only one uncommented) ]--
-    command: /bin/sh -c 'yarn && npm start'
+    command: /bin/sh -c 'yarn && yarn start'
     ## --[ webpack-dev-server ]--
-    #command: sh -c 'yarn && (npm start & npm run dev)'
+    #command: /bin/sh -c 'yarn && (yarn app-dev & yarn dev)'
     ## to run webpack in docker edit webpack.config.js, add
     ## under devServer `host: '0.0.0.0', disableHostCheck: true,`,
     ## for thumbs proxy /pandathumbs same as /api, then expose 8080
