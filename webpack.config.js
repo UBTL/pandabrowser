@@ -24,7 +24,7 @@ module.exports = ({ prod = false } = {}) => ({
 	output: {
 		filename: 'static/js/[name].js',
 		publicPath: '/',
-		path: path.resolve(__dirname, 'dist'),
+		path: path.resolve(__dirname, 'frontend'),
 	},
 	resolve: {
 		modules: [
@@ -95,8 +95,9 @@ module.exports = ({ prod = false } = {}) => ({
 	} : {
 		devServer: {
 			hot: true,
-			//host: '0.0.0.0',
-			//disableHostCheck: true,
+			// noInfo: true,
+			// host: '0.0.0.0',
+			// disableHostCheck: true,
 			historyApiFallback: true,
 			overlay: {
 				warnings: true,
