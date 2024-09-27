@@ -233,7 +233,7 @@ const search = async (req, res) => {
 	].filter(e => e).join(' AND ');
 
 	try {
-		const pagedQuery = `SELECT DISTINCT gallery.*,
+		const pagedQuery = `SELECT gallery.*,
 				(select thumb from thumbnail where id=gallery.thumbnail_id) thumb
 			FROM ${table} WHERE ${query || 1}
 			ORDER BY gallery.posted DESC LIMIT ? OFFSET ?`;
