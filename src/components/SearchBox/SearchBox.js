@@ -39,7 +39,21 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 	const [showAdvance, setShowAdvance] = useState(+options.advance);
 	const [showFileSearch, setShowFileSearch] = useState(+options.fileSearch);
 
+	let isHandledByCategoryClick = false;
+
+	const onCategoryClick = (event) => {
+		if (event.getModifierState("Alt")) {
+			isHandledByCategoryClick = true;
+			const value = +event.target.value;
+			setCategory(event.target.checked ? 1023 : value);
+		}
+	};
+
 	const updateCategory = (event) => {
+		if (isHandledByCategoryClick) {
+			isHandledByCategoryClick = false;
+			return;
+		}
 		const value = +event.target.value;
 		setCategory(category + (event.target.checked ? value : -value));
 	};
@@ -160,7 +174,7 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 			<div className={styles.category}>
 				{categoryList.filter(e => e.visible !== false).map(e => (
 					<label key={e.value} className={styles.item}>
-						<input type="checkbox" checked={category & e.value} value={e.value} onChange={updateCategory} className={styles.checkbox} />
+						<input type="checkbox" checked={category & e.value} value={e.value} onChange={updateCategory} onClick={onCategoryClick} className={styles.checkbox} />
 						<span className={styles.name} style={{ background: e.color }}>{e.name}</span>
 					</label>
 				))}
