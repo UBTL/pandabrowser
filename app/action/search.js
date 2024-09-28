@@ -201,9 +201,9 @@ const search = async (req, res) => {
 	/* eslint-enable indent */
 
 	const query = [
-		!expunged && 'expunged = 0',
-		!removed && 'removed = 0',
-		!replaced && 'replaced = 0',
+		!+expunged && 'expunged = 0',
+		!+removed && 'removed = 0',
+		!+replaced && 'replaced = 0',
 		!tags.inc.length && tags.exc.length && 't.gid IS NULL',
 		cats.length && cats.length !== 10 && conn.connection.format('category IN (?)', [cats]),
 		// E-Hentai only returns the latest gallery of specific gid, but whatever, we have `replaced`

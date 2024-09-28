@@ -7,9 +7,9 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 	const defaultOptions = {
 		category: 1023,
 		keyword: '',
-		expunged: 0,
+		expunged: 1,
 		replaced: 0,
-		removed: 0,
+		removed: 1,
 		minpage: '',
 		maxpage: '',
 		minrating: '',

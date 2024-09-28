@@ -64,7 +64,7 @@ const Home = ({ history }) => {
 
 	const onSearch = (options) => {
 		const sortedOptions = Object.keys(options).sort().reduce((pre, cur) => {
-			if (options[cur]) {
+			if (options[cur] !== "") {
 				pre[cur] = options[cur];
 			}
 			return pre;
