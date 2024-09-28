@@ -18,8 +18,10 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 		maxdate: '',
 		advance: 0,
 		fileSearch: 0,
+		applyOptionsToFileSearch: 0,
 	};
 	const storedOptions = JSON.parse(localStorage.getItem('searchOptions')) || {};
+	/** @type {import('@types').SearchOptions} */
 	const options = {
 		...defaultOptions,
 		...storedOptions,
@@ -38,6 +40,7 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 	const [maxdate, setMaxDate] = useState(options.maxdate);
 	const [showAdvance, setShowAdvance] = useState(+options.advance);
 	const [showFileSearch, setShowFileSearch] = useState(+options.fileSearch);
+	const [applyOptionsToFileSearch, setApplyOptionsToFileSearch] = useState(false);
 
 	let isHandledByCategoryClick = false;
 
@@ -111,6 +114,10 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 		}
 	};
 
+	const updateApplyOptionsToFileSearch = (event) => {
+		setApplyOptionsToFileSearch(+event.target.checked);
+	};
+
 	const toggleAdvance = () => {
 		setShowAdvance(!showAdvance);
 	};
@@ -119,8 +126,8 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 		setShowFileSearch(!showFileSearch);
 	};
 
-	const saveDefaultOptions = () => {
-		localStorage.setItem('searchOptions', JSON.stringify({
+	const getAllOptions = () => {
+		return {
 			category,
 			keyword,
 			expunged,
@@ -133,7 +140,11 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 			mindate,
 			maxdate,
 			advance: +showAdvance,
-		}));
+		}
+	};
+
+	const saveDefaultOptions = () => {
+		localStorage.setItem('searchOptions', JSON.stringify(getAllOptions()));
 	};
 
 	const onFileSearchSubmit = (event) => {
@@ -143,27 +154,14 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 			const file = fileInput.files[0];
 			const formData = new FormData();
 			formData.append('file', file);
-			onFileSearch(formData);
+			onFileSearch(formData, applyOptionsToFileSearch ? getAllOptions() : undefined);
 		}
 	};
 
 	const onSubmit = (event) => {
 		event.preventDefault();
 		if (onSearch) {
-			onSearch({
-				category,
-				keyword,
-				expunged,
-				replaced,
-				removed,
-				minpage,
-				maxpage,
-				minrating,
-				limit,
-				mindate,
-				maxdate,
-				advance: +showAdvance,
-			});
+			onSearch(getAllOptions());
 		}
 	};
 
@@ -252,9 +250,14 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 					<label className={styles.advanceItem}>
 						<input type="file" id="searchFile" onChange={updateFileSearch} />
 					</label>
-					<label className={styles.advanceItem}>
-						<input type="submit" value="File Search" />
-					</label>
+					<span className={styles.advanceItem}>
+						<span className={styles.advanceItem}>
+							<input type="submit" value="File Search" />
+						</span>
+						<label className={styles.advanceItem} title="Except pages and tags">
+							<input type="checkbox" onChange={updateApplyOptionsToFileSearch} /> Apply search options
+						</label>
+					</span>
 				</div>
 			</form>
 		) : null}

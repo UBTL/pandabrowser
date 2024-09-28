@@ -1,0 +1,13 @@
+{
+  "compilerOptions": {
+    "checkJs": true,
+    "strict": true,
+    "jsx": "react",
+    "baseUrl": ".",
+    "paths": {
+      "@types": ["types/index.d.ts"],
+      "@types/*": ["types/*"]
+    }
+  },
+  "include": ["src/**/*", "types/**/*"]
+}
