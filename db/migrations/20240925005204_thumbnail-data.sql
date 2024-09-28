@@ -9,6 +9,9 @@ CREATE INDEX IF NOT EXISTS thumb on gallery (thumb);
 -- this might take 3min depending on hardware
 UPDATE gallery g inner join thumbnail t on (t.thumb=g.thumb) set g.thumbnail_id=t.id;
 
+-- shorten local file paths to basename, UI knows which folder they're in
+UPDATE thumbnail set thumb=REGEXP_REPLACE(thumb,'.*/','') where thumb like 'pandathumbs/%.jpg';
+
 ALTER TABLE gallery DROP thumb;
 
 
