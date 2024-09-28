@@ -22,41 +22,45 @@ const tagList = async (req, res) => {
 	}
 
 	const conn = await new ConnectDB().connect();
+	try {
+		const thumbQuery = '(select thumb from thumbnail where id=a.thumbnail_id) thumb';
+		const result = await conn.query(
+			`SELECT a.*, ${thumbQuery} FROM gallery AS a FORCE INDEX(posted) INNER JOIN (
+				SELECT a.* FROM gid_tid AS a INNER JOIN (
+					SELECT id FROM tag WHERE name IN (?)
+				) AS b ON a.tid = b.id GROUP BY a.gid HAVING COUNT(a.gid) = ? ORDER BY NULL
+			) AS b ON a.gid = b.gid WHERE expunged = 0 ORDER BY posted DESC LIMIT ? OFFSET ?`,
+			[tags, tags.length, limit, (page - 1) * limit]
+		);
+		const { total } = (await conn.query(
+			`SELECT COUNT(*) AS total FROM gallery AS a INNER JOIN (
+				SELECT a.* FROM gid_tid AS a INNER JOIN(
+					SELECT id FROM tag WHERE name IN(?)
+				) AS b ON a.tid = b.id GROUP BY a.gid HAVING COUNT(a.gid) = ? ORDER BY NULL
+			) AS b ON a.gid = b.gid WHERE expunged = 0`,
+			[tags, tags.length]
+		))[0];
 
-	const result = await conn.query(
-		`SELECT a.* FROM gallery AS a FORCE INDEX(posted) INNER JOIN (
-			SELECT a.* FROM gid_tid AS a INNER JOIN (
-				SELECT id FROM tag WHERE name IN (?)
-			) AS b ON a.tid = b.id GROUP BY a.gid HAVING COUNT(a.gid) = ? ORDER BY NULL
-		) AS b ON a.gid = b.gid WHERE expunged = 0 ORDER BY posted DESC LIMIT ? OFFSET ?`,
-		[tags, tags.length, limit, (page - 1) * limit]
-	);
-	const { total } = (await conn.query(
-		`SELECT COUNT(*) AS total FROM gallery AS a INNER JOIN (
-			SELECT a.* FROM gid_tid AS a INNER JOIN(
-				SELECT id FROM tag WHERE name IN(?)
-			) AS b ON a.tid = b.id GROUP BY a.gid HAVING COUNT(a.gid) = ? ORDER BY NULL
-		) AS b ON a.gid = b.gid WHERE expunged = 0`,
-		[tags, tags.length]
-	))[0];
+		if (!result.length) {
+			return res.json(getResponse([], 200, 'success', { total }));
+		}
 
-	if (!result.length) {
-		conn.destroy();
-		return res.json(getResponse([], 200, 'success', { total }));
+		const gids = result.map(e => e.gid);
+		const rootGids = result.map(e => e.root_gid).filter(e => e);
+		const gidTags = await queryTags(conn, gids);
+		const gidTorrents = await queryTorrents(conn, rootGids);
+
+		result.forEach(e => {
+			e.tags = gidTags[e.gid] || [];
+			e.torrents = gidTorrents[e.root_gid] || [];
+		});
+
+		return res.json(getResponse(result, 200, 'success', { total }));
+	} catch (err) {
+		return res.status(500).json(getResponse(null, 500, 'internal server error', { err }));
+	} finally {
+		conn.end();
 	}
-
-	const gids = result.map(e => e.gid);
-	const rootGids = result.map(e => e.root_gid).filter(e => e);
-	const gidTags = await queryTags(conn, gids);
-	const gidTorrents = await queryTorrents(conn, rootGids);
-
-	result.forEach(e => {
-		e.tags = gidTags[e.gid] || [];
-		e.torrents = gidTorrents[e.root_gid] || [];
-	});
-
-	conn.destroy();
-	return res.json(getResponse(result, 200, 'success', { total }));
 };
 
 module.exports = tagList;
