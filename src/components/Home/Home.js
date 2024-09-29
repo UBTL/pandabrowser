@@ -23,10 +23,13 @@ const Home = ({ history }) => {
 
 	const query = queryString.parse(history.location.search.substr(1));
 	const { page = 1, limit = 10 } = query;
-	const totalPage = Math.ceil(total / limit);
+	const totalPage = Math.ceil(total / +limit);
 
 	const getList = () => {
-		document.querySelector('#imagePreview').style.display = 'none';
+		/** @type {HTMLElement | null} */
+		const imgPreview = document.querySelector('#imagePreview');
+		imgPreview ? imgPreview.style.display = 'none' : null;
+
 		setPagerVisible(true);
 		setLoading(true);
 		setStartTime(Date.now());
@@ -145,7 +148,7 @@ const Home = ({ history }) => {
 
 	return (
 		<div className={styles.container}>
-			<SearchBox options={query} search={history.location.search} onSearch={onSearch} onFileSearch={onFileSearch} />
+			<SearchBox options={query} onSearch={onSearch} onFileSearch={onFileSearch} />
 			<p className={styles.total} ref={totalStatus}>
 				{loading ? 'Loading...' : `Matches ${total?.toLocaleString()} ${total > 1 ? 'results' : 'result'}`}
 				{!loading && <span> ({(endTime - startTime) / 1000} sec)</span>}
