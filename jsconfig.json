@@ -9,5 +9,5 @@
       "@types/*": ["types/*"]
     }
   },
-  "include": ["src/**/*", "types/**/*"]
+  "include": ["app/**/*", "src/**/*", "types/**/*"]
 }
