@@ -28,6 +28,19 @@ export type Category =
     'Western'    |
     'private'
 
+export type Torrent = {
+    id: number,
+    name: string,
+    hash: string,
+    added: number,
+    tsize: number,
+    fsize: number,
+    addedstr: string,
+    fsizestr: string,
+    uploader: string,
+    expunged: boolean,
+}
+
 export type Gallery = {
     gid: number,
     token: string,
@@ -44,13 +57,13 @@ export type Gallery = {
     removed: boolean,
     replaced: boolean,
     rating: string, // number?
-    torrentcount: boolean,
+    torrentcount: number,
     root_gid: number,
     bytorrent: boolean,
     thumb: string,
     bc: number,
     tags: string[],
-    torrents: string[],
+    torrents: Torrent[],
 }
 
 export type ImageSearchResult = Gallery & {bc: number}
@@ -63,3 +76,58 @@ export type PandaApiResponse<T> = {
 }
 
 export type ImageSearchResponse = PandaApiResponse<ImageSearchResult>
+
+
+// https://anansi-project.github.io/docs/comicinfo/schemas/v2.1
+export interface ComicInfo {
+    Title?: string,
+    Series?: string,
+    // non-standard field from kavita https://github.com/anansi-project/comicinfo/issues/6
+    LocalizedSeries?: string,
+    Number?: string,
+    Count?: number = -1,
+    Volume?: number = -1,
+    AlternateSeries?: string,
+    AlternateNumber?: string,
+    AlternateCount?: number = -1,
+    Summary?: string,
+    Notes?: string,
+    Year?: number = -1,
+    Month?: number = -1,
+    Day?: number = -1,
+    // creator fields
+    Writer?: string,
+    Penciller?: string,
+    Inker?: string,
+    Colorist?: string,
+    Letterer?: string,
+    CoverArtist?: string,
+    Editor?: string,
+    Translator?: string,
+    //
+    Publisher?: string,
+    Imprint?: string,
+    Genre?: string,
+    Tags?: string,
+    Web?: string,
+    PageCount?: number = 0,
+    LanguageISO?: string,
+    Format?: string,
+    BlackAndWhite?: 'Unknown' | 'No' | 'Yes' = 'Unknown',
+    Manga?: 'Unknown' | 'No' | 'Yes' | 'YesAndRightToLeft' = 'Uknown',
+    // multiple values are comma separated
+    Characters?: string,
+    Teams?: string,
+    Locations?: string,
+    ScanInformation?: string,
+    StoryArc?: string,
+    StoryArcNumber?: string,
+    SeriesGroup?: string,
+    AgeRating?: string = 'Unknown',
+    // <xs:element minOccurs="0" maxOccurs="1" name="Pages" type="ArrayOfComicPageInfo"/>
+    CommunityRating?: number,  // 0.0 - 5.0
+    MainCharacterOrTeam?: string,
+    Review?: string,
+    GTIN?: string,
+    [Key: string]: any;
+}
