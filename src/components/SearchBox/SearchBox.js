@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import categoryList from '../../util/category';
 import styles from './SearchBox.css';
 import moment from 'moment';
@@ -7,9 +7,9 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 	const defaultOptions = {
 		category: 1023,
 		keyword: '',
-		expunged: 0,
+		expunged: 1,
 		replaced: 0,
-		removed: 0,
+		removed: 1,
 		minpage: '',
 		maxpage: '',
 		minrating: '',
@@ -18,8 +18,10 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 		maxdate: '',
 		advance: 0,
 		fileSearch: 0,
+		applyOptionsToFileSearch: 0,
 	};
 	const storedOptions = JSON.parse(localStorage.getItem('searchOptions')) || {};
+	/** @type {import('@types').SearchOptions} */
 	const options = {
 		...defaultOptions,
 		...storedOptions,
@@ -38,8 +40,23 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 	const [maxdate, setMaxDate] = useState(options.maxdate);
 	const [showAdvance, setShowAdvance] = useState(+options.advance);
 	const [showFileSearch, setShowFileSearch] = useState(+options.fileSearch);
+	const [applyOptionsToFileSearch, setApplyOptionsToFileSearch] = useState(false);
+
+	let isHandledByCategoryClick = false;
+
+	const onCategoryClick = (event) => {
+		if (event.getModifierState("Alt")) {
+			isHandledByCategoryClick = true;
+			const value = +event.target.value;
+			setCategory(event.target.checked ? 1023 : value);
+		}
+	};
 
 	const updateCategory = (event) => {
+		if (isHandledByCategoryClick) {
+			isHandledByCategoryClick = false;
+			return;
+		}
 		const value = +event.target.value;
 		setCategory(category + (event.target.checked ? value : -value));
 	};
@@ -97,6 +114,10 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 		}
 	};
 
+	const updateApplyOptionsToFileSearch = (event) => {
+		setApplyOptionsToFileSearch(+event.target.checked);
+	};
+
 	const toggleAdvance = () => {
 		setShowAdvance(!showAdvance);
 	};
@@ -105,8 +126,8 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 		setShowFileSearch(!showFileSearch);
 	};
 
-	const saveDefaultOptions = () => {
-		localStorage.setItem('searchOptions', JSON.stringify({
+	const getAllOptions = () => {
+		return {
 			category,
 			keyword,
 			expunged,
@@ -119,7 +140,15 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 			mindate,
 			maxdate,
 			advance: +showAdvance,
-		}));
+		}
+	};
+
+	const saveDefaultOptions = (event) => {
+		localStorage.setItem('searchOptions', JSON.stringify(getAllOptions()));
+		event.target.classList.add(styles.highlight);
+		setTimeout(() => {
+			event.target.classList.remove(styles.highlight);
+		}, 2000);
 	};
 
 	const onFileSearchSubmit = (event) => {
@@ -129,29 +158,36 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 			const file = fileInput.files[0];
 			const formData = new FormData();
 			formData.append('file', file);
-			onFileSearch(formData);
+			onFileSearch(formData, applyOptionsToFileSearch ? getAllOptions() : undefined);
 		}
 	};
 
 	const onSubmit = (event) => {
 		event.preventDefault();
 		if (onSearch) {
-			onSearch({
-				category,
-				keyword,
-				expunged,
-				replaced,
-				removed,
-				minpage,
-				maxpage,
-				minrating,
-				limit,
-				mindate,
-				maxdate,
-				advance: +showAdvance,
-			});
+			onSearch(getAllOptions());
 		}
 	};
+
+	useEffect(() => {
+		const options = {
+			...defaultOptions,
+			...storedOptions,
+			...passedOptions
+		};
+		setCategory(+options.category);
+		setKeyword(options.keyword);
+		setExpunged(+options.expunged);
+		setReplaced(+options.replaced);
+		setRemoved(+options.removed);
+		setMinPage(options.minpage);
+		setMaxPage(options.maxpage);
+		setMinRating(options.minrating);
+		setLimit(options.limit);
+		setMinDate(options.mindate);
+		setMaxDate(options.maxdate);
+		setShowAdvance(+options.advance);
+	}, [passedOptions]);
 
 	return (
 		<>
@@ -160,7 +196,7 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 			<div className={styles.category}>
 				{categoryList.filter(e => e.visible !== false).map(e => (
 					<label key={e.value} className={styles.item}>
-						<input type="checkbox" checked={category & e.value} value={e.value} onChange={updateCategory} className={styles.checkbox} />
+						<input type="checkbox" checked={category & e.value} value={e.value} onChange={updateCategory} onClick={onCategoryClick} className={styles.checkbox} />
 						<span className={styles.name} style={{ background: e.color }}>{e.name}</span>
 					</label>
 				))}
@@ -238,9 +274,14 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 					<label className={styles.advanceItem}>
 						<input type="file" id="searchFile" onChange={updateFileSearch} />
 					</label>
-					<label className={styles.advanceItem}>
-						<input type="submit" value="File Search" />
-					</label>
+					<span className={styles.advanceItem}>
+						<span className={styles.advanceItem}>
+							<input type="submit" value="File Search" />
+						</span>
+						<label className={styles.advanceItem} title="Except pages and tags">
+							<input type="checkbox" onChange={updateApplyOptionsToFileSearch} /> Apply search options
+						</label>
+					</span>
 				</div>
 			</form>
 		) : null}

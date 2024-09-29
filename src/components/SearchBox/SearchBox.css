@@ -122,8 +122,24 @@
 }
 
 .imagePreview {
-    display: none;
-    float: left;
-    margin: 10px 0;
-    width: 240px;
+	display: none;
+	float: left;
+	margin: 10px 0;
+	width: 240px;
+}
+
+.highlight {
+	animation: clickAnimation 2s ease forwards;
+}
+
+@keyframes clickAnimation {
+	0% {
+		color: #eee;
+	}
+	50% {
+		color: #5bd;
+	}
+	100% {
+		color: #ddd;
+	}
 }

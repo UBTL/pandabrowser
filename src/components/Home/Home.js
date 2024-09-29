@@ -4,23 +4,32 @@ import SearchBox from '../SearchBox';
 import List from '../List';
 import styles from './Home.css';
 import Pager from '../Pager';
+import { categoryNameMap } from 'src/util/category';
+
+/**
+ * @typedef {import('@types').SearchOptions} SearchOptions
+ * @typedef {import('@types').ImageSearchResponse} ImageSearchResponse
+ */
 
 const Home = ({ history }) => {
 	const [list, setList] = useState([]);
 	const [loading, setLoading] = useState(false);
-	const [total, setTotal] = useState(null);
-	const [startTime, setStartTime] = useState(null);
-	const [endTime, setEndTime] = useState(null);
+	const [total, setTotal] = useState(0);
+	const [startTime, setStartTime] = useState(0);
+	const [endTime, setEndTime] = useState(0);
 	const [isPagerVisible, setPagerVisible] = useState(false);
 	const aborter = useRef();
 	const totalStatus = useRef();
 
 	const query = queryString.parse(history.location.search.substr(1));
 	const { page = 1, limit = 10 } = query;
-	const totalPage = Math.ceil(total / limit);
+	const totalPage = Math.ceil(total / +limit);
 
 	const getList = () => {
-		document.querySelector('#imagePreview').style.display = 'none';
+		/** @type {HTMLElement | null} */
+		const imgPreview = document.querySelector('#imagePreview');
+		imgPreview ? imgPreview.style.display = 'none' : null;
+
 		setPagerVisible(true);
 		setLoading(true);
 		setStartTime(Date.now());
@@ -64,7 +73,7 @@ const Home = ({ history }) => {
 
 	const onSearch = (options) => {
 		const sortedOptions = Object.keys(options).sort().reduce((pre, cur) => {
-			if (options[cur]) {
+			if (options[cur] !== "") {
 				pre[cur] = options[cur];
 			}
 			return pre;
@@ -72,7 +81,12 @@ const Home = ({ history }) => {
 		history.push(`/?${queryString.stringify(sortedOptions)}`);
 	};
 
-	const onFileSearch = (formData) => {
+	/**
+	 * 
+	 * @param {FormData} formData 
+	 * @param {SearchOptions | undefined} options 
+	 */
+	const onFileSearch = (formData, options) => {
 		setPagerVisible(false);
 		setLoading(true);
 		setStartTime(Date.now());
@@ -88,11 +102,21 @@ const Home = ({ history }) => {
 			}
 			throw new Error('File upload failed');
 		})
-		.then(res => {
-			const { data, total, code, message } = res;
-			console.log('Success:', res);
-			setList(data);
-			setTotal(data.length);
+		.then((/** @type {ImageSearchResponse} */ res) => {
+			const { data } = res;
+			const filtered = !options ? data : data.filter(d => {
+				const posted = new Date(d.posted * 1000);
+				const category = categoryNameMap[d.category].value;
+				return (options.category & category) &&
+					(!options.minrating || d.rating >= options.minrating) &&
+					(!d.replaced || options.replaced) &&
+					(!d.expunged || options.expunged) &&
+					(!d.removed || options.removed) &&
+					(!options.mindate || posted >= new Date(+options.mindate * 1000)) &&
+					(!options.maxdate || posted <= new Date(+options.maxdate * 1000));
+			});
+			setList(filtered);
+			setTotal(filtered.length);
 		})
 		.catch(error => {
 			console.error('Error:', error);
@@ -124,7 +148,7 @@ const Home = ({ history }) => {
 
 	return (
 		<div className={styles.container}>
-			<SearchBox options={query} search={history.location.search} onSearch={onSearch} onFileSearch={onFileSearch} />
+			<SearchBox options={query} onSearch={onSearch} onFileSearch={onFileSearch} />
 			<p className={styles.total} ref={totalStatus}>
 				{loading ? 'Loading...' : `Matches ${total?.toLocaleString()} ${total > 1 ? 'results' : 'result'}`}
 				{!loading && <span> ({(endTime - startTime) / 1000} sec)</span>}
