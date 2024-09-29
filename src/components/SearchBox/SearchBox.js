@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import categoryList from '../../util/category';
 import styles from './SearchBox.css';
 import moment from 'moment';
@@ -143,8 +143,12 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 		}
 	};
 
-	const saveDefaultOptions = () => {
+	const saveDefaultOptions = (event) => {
 		localStorage.setItem('searchOptions', JSON.stringify(getAllOptions()));
+		event.target.classList.add(styles.highlight);
+		setTimeout(() => {
+			event.target.classList.remove(styles.highlight);
+		}, 2000);
 	};
 
 	const onFileSearchSubmit = (event) => {
@@ -164,6 +168,26 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 			onSearch(getAllOptions());
 		}
 	};
+
+	useEffect(() => {
+		const options = {
+			...defaultOptions,
+			...storedOptions,
+			...passedOptions
+		};
+		setCategory(+options.category);
+		setKeyword(options.keyword);
+		setExpunged(+options.expunged);
+		setReplaced(+options.replaced);
+		setRemoved(+options.removed);
+		setMinPage(options.minpage);
+		setMaxPage(options.maxpage);
+		setMinRating(options.minrating);
+		setLimit(options.limit);
+		setMinDate(options.mindate);
+		setMaxDate(options.maxdate);
+		setShowAdvance(+options.advance);
+	}, [passedOptions]);
 
 	return (
 		<>
