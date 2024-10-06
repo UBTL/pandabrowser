@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import categoryList from '../../util/category';
 import styles from './SearchBox.css';
 import moment from 'moment';
+import featureFlags from 'src/util/featureFlags';
 
 const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 	const defaultOptions = {
@@ -39,6 +40,7 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 	const [mindate, setMinDate] = useState(options.mindate);
 	const [maxdate, setMaxDate] = useState(options.maxdate);
 	const [showAdvance, setShowAdvance] = useState(+options.advance);
+	const [personal, setPersonal] = useState({});
 	const [showFileSearch, setShowFileSearch] = useState(+options.fileSearch);
 	const [applyOptionsToFileSearch, setApplyOptionsToFileSearch] = useState(false);
 
@@ -140,6 +142,7 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 			mindate,
 			maxdate,
 			advance: +showAdvance,
+			personal,
 		}
 	};
 
@@ -161,6 +164,10 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 			onFileSearch(formData, applyOptionsToFileSearch ? getAllOptions() : undefined);
 		}
 	};
+
+	const onPersonal = (type) => (event) => {
+		setPersonal({...personal, [type]: event.target.checked})
+	}
 
 	const onSubmit = (event) => {
 		event.preventDefault();
@@ -220,18 +227,35 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 			</div>
 			{showAdvance ? (
 				<div className={styles.advance}>
-					<label className={styles.advanceItem}>
-						<input type="checkbox" checked={expunged} onChange={updateExpunged} />
-						Show Expunged
-					</label>
-					<label className={styles.advanceItem}>
-						<input type="checkbox" checked={removed} onChange={updateRemoved} />
-						Show Removed
-					</label>
-					<label className={styles.advanceItem}>
-						<input type="checkbox" checked={replaced} onChange={updateReplaced} />
-						Show Replaced
-					</label>
+					<span className={styles.advanceItem}>
+					<label>Show</label>
+						<label>
+							<input type="checkbox" checked={expunged} onChange={updateExpunged} />
+							Expunged
+						</label>
+						<label>
+							<input type="checkbox" checked={removed} onChange={updateRemoved} />
+							Removed
+						</label>
+						<label>
+							<input type="checkbox" checked={replaced} onChange={updateReplaced} />
+							Replaced
+						</label>
+					</span>
+					{featureFlags.isEnabled('personal') && (
+						<>
+						<span className={styles.advanceItem}>
+							<label>Personally</label>
+							{['Have','Read','Want'].map(p => (
+							<label key={p}>
+								<input type="checkbox" checked={!!personal[p]} onChange={onPersonal(p)} />
+								{p}
+							</label>
+							))}
+						</span>
+						<span className={styles.advanceItem}></span>
+						</>
+					)}
 					<label className={styles.advanceItem}>
 						Show
 						<select value={limit} onChange={updateLimit} className={styles.select}>

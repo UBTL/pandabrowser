@@ -9,4 +9,5 @@ module.exports = {
 	corsOrigin: '*',
 	webui: true,
 	webuiPath: 'frontend',
+	features: { personal: false },
 };

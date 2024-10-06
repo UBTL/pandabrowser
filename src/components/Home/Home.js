@@ -5,6 +5,7 @@ import List from '../List';
 import styles from './Home.css';
 import Pager from '../Pager';
 import { categoryNameMap } from 'src/util/category';
+import featureFlags from 'src/util/featureFlags';
 
 /**
  * @typedef {import('@types').SearchOptions} SearchOptions
@@ -18,6 +19,7 @@ const Home = ({ history }) => {
 	const [startTime, setStartTime] = useState(0);
 	const [endTime, setEndTime] = useState(0);
 	const [isPagerVisible, setPagerVisible] = useState(false);
+	const [features, setFeatures] = useState(featureFlags.flags);
 	const aborter = useRef();
 	const totalStatus = useRef();
 
@@ -74,11 +76,30 @@ const Home = ({ history }) => {
 	const onSearch = (options) => {
 		const sortedOptions = Object.keys(options).sort().reduce((pre, cur) => {
 			if (options[cur] !== "") {
-				pre[cur] = options[cur];
+				if (cur === "personal") {
+					for (const [k, v] of Object.entries(options[cur])) {
+						if (v) pre[`personal_${k.toLowerCase()}`] = !!v;
+					}
+				} else {
+					pre[cur] = options[cur];
+				}
 			}
 			return pre;
 		}, {});
 		history.push(`/?${queryString.stringify(sortedOptions)}`);
+	};
+
+	const onPersonal = (gid, type, value) => {
+		fetch('/api/personal', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify({gid, type, value}),
+		})
+		.then(response => {
+			console.log(response)
+		});
 	};
 
 	/**
@@ -156,7 +177,7 @@ const Home = ({ history }) => {
 			{list.length ? (
 				<>
 					{isPagerVisible && <Pager page={+page} total={totalPage} onChange={setPage} />}
-					<List list={list} loading={loading} onSearch={onGallerySearch} />
+					<List list={list} loading={loading} onSearch={onGallerySearch} onPersonal={onPersonal} />
 					{isPagerVisible && <Pager page={+page} total={totalPage} onChange={setPage} />}
 				</>
 			) : null}

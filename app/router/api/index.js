@@ -8,6 +8,7 @@ const search = require('./search');
 const searchImage = require('./searchImage');
 const notFound = require('../../action/notFound');
 const comicInfo = require('./comicInfo');
+const personal = require('./personal');
 
 const router = Router();
 router.use('/gallery', gallery);
@@ -20,6 +21,7 @@ router.use('/uploader', uploader);
 router.use('/search', search);
 router.use('/searchimage', searchImage);
 router.use('/comicInfo', comicInfo);
+router.use('/personal', personal);
 router.use('/', notFound);
 
 module.exports = router;

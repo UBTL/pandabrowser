@@ -8,13 +8,25 @@ import Rating from '../Rating';
 import parseEntity from '../../util/parseEntity';
 import Modal from '../Modal/Modal';
 import Torrent from '../Torrent';
+import featureFlags from 'src/util/featureFlags';
 
 const Gallery = ({
 	thumb, category, uploader, posted, expunged, removed, replaced, filesize, filecount,
-	title, title_jpn, rating, tags = [], gid, token, torrents, onSearch = () => {}
+	title, title_jpn, rating, tags = [], gid, token, torrents, personal,
+	onSearch = () => {}, onPersonal = () => {}
 }) => {
 	const [visible, setVisible] = useState(false);
 	const toggleTorrentModal = () => setVisible(!visible);
+
+	const onHave = () => {
+		onPersonal(gid, 'Have', !personal.have)
+	};
+	const onDone = () => {
+		onPersonal(gid, 'Done', !personal.done)
+	};
+	const onWant = () => {
+		onPersonal(gid, 'Want', !personal.want)
+	};
 
 	const tagList = {};
 	tags.forEach(e => {
@@ -29,6 +41,31 @@ const Gallery = ({
 		? thumb
 		: `pandathumbs/${thumb.slice(0,2)}/${thumb.slice(2,4)}/${thumb}`
 	).replace(/_l\./, '_250.')
+
+	const renderPersonal = () => {
+		if (!featureFlags.isEnabled('personal') || !personal) {
+			return null;
+		}
+		return <div className={styles.personal}>
+			<div className={styles.metaSingleItem}>
+				<label className={styles.checkbox}>
+					<input type="checkbox" checked={personal.have} onChange={onHave}/>
+					<span>Have</span>
+				</label>
+				<label className={styles.checkbox}>
+					<input type="checkbox" checked={personal.done} onChange={onDone}/>
+					<span>Read</span>
+				</label>
+				<label className={styles.checkbox}>
+					<input type="checkbox" checked={personal.want} onChange={onWant}/>
+					<span>Want</span>
+				</label>
+			</div>
+			<div className={styles.metaSingleItem}>
+				{personal.have && <a href={`panda://${gid}`}>Open cbz</a>}
+			</div>
+		</div>;
+	};
 
 	return (
 		<div className={styles.container}>
@@ -136,6 +173,7 @@ const Gallery = ({
 						{rating}
 					</span>
 				</div>
+				{personal && renderPersonal()}
 			</div>
 			<div className={styles.main}>
 				<div className={styles.header}>

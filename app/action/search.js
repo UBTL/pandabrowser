@@ -2,14 +2,17 @@ const ConnectDB = require('../util/connectDB');
 const getResponse = require('../util/getResponse');
 const matchExec = require('../util/matchExec');
 const { categoryMap } = require('../util/category');
+const queryPersonal = require('../util/queryPersonal');
 const queryTags = require('../util/queryTags');
 const queryTorrents = require('../util/queryTorrents');
 const normalizedTag = require('../util/normalizedTag');
+const config = require('../../config');
 
 const search = async (req, res) => {
 	let {
 		keyword = '', category = '', expunged = 1, minpage = 0, maxpage = 0, minrating = 0,
-		mindate = 0, maxdate = 0, removed = 1, replaced = 0, page = 1, limit = 10
+		mindate = 0, maxdate = 0, removed = 1, replaced = 0, page = 1, limit = 10,
+		personal_have = 0, personal_read = 0, personal_want = 0,
 	} = Object.assign({}, req.params, req.query);
 
 	[page, limit] = [page, limit].map(e => e <= 0 ? 1 : parseInt(e, 10));
@@ -233,15 +236,21 @@ const search = async (req, res) => {
 	].filter(e => e).join(' AND ');
 
 	try {
+		const personalQuery = (personal_have || personal_read || personal_want)
+			? `INNER JOIN gallery_personal AS gp ON (gallery.gid = gp.gid AND
+				(gp.have=${personal_have} OR gp.done=${personal_read} OR gp.want=${personal_want}))`
+			: ''
 		const pagedQuery = `SELECT gallery.*,
 				(select thumb from thumbnail where id=gallery.thumbnail_id) thumb
-			FROM ${table} WHERE ${query || 1}
+			FROM ${table} ${personalQuery}
+			WHERE ${query || 1}
 			ORDER BY gallery.posted DESC LIMIT ? OFFSET ?`;
 
 		const result = await conn.query(pagedQuery, [limit, (page - 1) * limit]);
 
 		const noForceIndexTable = table.replace('FORCE INDEX(posted)', '');
-		const { total } = (await conn.query(`SELECT COUNT(DISTINCT gallery.gid) AS total FROM ${noForceIndexTable} WHERE ${query || 1}`))[0];
+		const { total } = (await conn.query(`SELECT COUNT(DISTINCT gallery.gid) AS total
+			FROM ${noForceIndexTable} ${personalQuery} WHERE ${query || 1}`))[0];
 
 		if (!result.length) {
 			return res.json(getResponse([], 200, 'success', { total }));
@@ -251,10 +260,12 @@ const search = async (req, res) => {
 		const rootGids = result.map(e => e.root_gid).filter(e => e);
 		const gidTags = await queryTags(conn, gids);
 		const gidTorrents = await queryTorrents(conn, rootGids);
+		const personal = config.features.personal && await queryPersonal(conn, gids);
 
 		result.forEach(e => {
 			e.tags = gidTags[e.gid] || [];
 			e.torrents = gidTorrents[e.root_gid] || [];
+			e.personal = personal[e.gid] || {};
 		});
 
 		return res.json(getResponse(result, 200, 'success', { total }));
