@@ -1,4 +1,15 @@
+/**
+ * @typedef {{ [key: string]: string[] }} TagMap
+ */
+
+/**
+ * 
+ * @param {import("./connectDB")} conn 
+ * @param {number[]} gids 
+ * @returns {Promise<TagMap>}
+ */
 const queryTags = async (conn, gids) => {
+	/** @type {TagMap} */
 	const gidTags = {};
 	if (!gids || !gids.length) {
 		return gidTags;
