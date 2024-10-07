@@ -77,6 +77,8 @@
 
 .tags {
 	padding-top: 10px;
+    flex-basis: 60%;
+    flex-grow: 1;
 }
 
 .tagLine {
@@ -102,6 +104,42 @@
 	padding: 2px 6px;
 	text-decoration: none;
 	margin-right: 5px;
+}
+
+.content {
+    display: flex;
+    justify-content: space-between;
+}
+
+.note {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    flex-basis: 15%;
+    flex-grow: 1;
+}
+.note a {
+	user-select: none;
+}
+.note div {
+	border: 1px dashed;
+	padding: 5px;
+	white-space: pre-wrap;
+}
+
+.personal {
+	margin: 20px auto;
+}
+.checkbox {
+	display: inline-block;
+	border: 1px solid #888;
+	border-radius: 3px;
+	padding: 2px 6px;
+	text-decoration: none;
+	margin-right: 5px;
+}
+.checkbox * {
+	vertical-align: middle;
 }
 
 .torrentLink {

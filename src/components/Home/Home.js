@@ -5,6 +5,7 @@ import List from '../List';
 import styles from './Home.css';
 import Pager from '../Pager';
 import { categoryNameMap } from 'src/util/category';
+import featureFlags from 'src/util/featureFlags';
 
 /**
  * @typedef {import('@types').SearchOptions} SearchOptions
@@ -18,10 +19,17 @@ const Home = ({ history }) => {
 	const [startTime, setStartTime] = useState(0);
 	const [endTime, setEndTime] = useState(0);
 	const [isPagerVisible, setPagerVisible] = useState(false);
+	const [features, setFeatures] = useState(featureFlags.flags);
 	const aborter = useRef();
 	const totalStatus = useRef();
 
 	const query = queryString.parse(history.location.search.substr(1));
+	if (typeof query.personally === "string") {
+		query.personally = query.personally?.split(',').reduce((o,v) => {
+			o[v] = true;
+			return o;
+		}, {});
+	}
 	const { page = 1, limit = 10 } = query;
 	const totalPage = Math.ceil(total / +limit);
 
@@ -71,14 +79,42 @@ const Home = ({ history }) => {
 		});
 	};
 
+	/**
+	 * 
+	 * @param {SearchOptions} options 
+	 */
 	const onSearch = (options) => {
 		const sortedOptions = Object.keys(options).sort().reduce((pre, cur) => {
 			if (options[cur] !== "") {
-				pre[cur] = options[cur];
+				if (cur === "personally") {
+					const vals = Object.keys(options[cur]).filter(k => options[cur][k]);
+					if (vals.length > 0) {
+						pre[cur] = vals.join(',');
+					}
+				} else {
+					pre[cur] = options[cur];
+				}
 			}
 			return pre;
 		}, {});
 		history.push(`/?${queryString.stringify(sortedOptions)}`);
+	};
+
+	/**
+	 * 
+	 * @param {import('@types').Personal} args 
+	 */
+	const onPersonal = (args) => {
+		fetch('/api/personal', {
+			method: 'POST',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+			body: JSON.stringify(args),
+		})
+		.then(response => {
+			console.log(response)
+		});
 	};
 
 	/**
@@ -127,6 +163,11 @@ const Home = ({ history }) => {
 		onSearch({ ...query, page });
 	};
 
+	/**
+	 * 
+	 * @param {SearchOptions} options 
+	 * @param {{ append?: any }} param1 
+	 */
 	const onGallerySearch = (options, { append } = {}) => {
 		const data = { ...query };
 		delete data.page;
@@ -156,7 +197,7 @@ const Home = ({ history }) => {
 			{list.length ? (
 				<>
 					{isPagerVisible && <Pager page={+page} total={totalPage} onChange={setPage} />}
-					<List list={list} loading={loading} onSearch={onGallerySearch} />
+					<List list={list} loading={loading} onSearch={onGallerySearch} onPersonal={onPersonal} />
 					{isPagerVisible && <Pager page={+page} total={totalPage} onChange={setPage} />}
 				</>
 			) : null}

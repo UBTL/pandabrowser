@@ -8,13 +8,32 @@ import Rating from '../Rating';
 import parseEntity from '../../util/parseEntity';
 import Modal from '../Modal/Modal';
 import Torrent from '../Torrent';
+import featureFlags from 'src/util/featureFlags';
 
+/**
+ * @param {import('@types').GalleryOptions} args
+ */
 const Gallery = ({
 	thumb, category, uploader, posted, expunged, removed, replaced, filesize, filecount,
-	title, title_jpn, rating, tags = [], gid, token, torrents, onSearch = () => {}
+	title, title_jpn, rating, tags = [], gid, token, torrents, personal,
+	onSearch = () => {}, onPersonal = () => {}
 }) => {
 	const [visible, setVisible] = useState(false);
+	const [isEditNote, setEditNote] = useState(false);
+	const [myRating, setMyRating] = useState(personal?.rating);
 	const toggleTorrentModal = () => setVisible(!visible);
+
+	const onChangePersonal = (newPersonal) => {
+		if (newPersonal.rating) {
+			setMyRating(newPersonal.rating);
+		}
+		onPersonal({...personal, ...newPersonal});
+	};
+
+	const onNoteSave = () => {
+		onPersonal(personal);
+		setEditNote(false);
+	};
 
 	const tagList = {};
 	tags.forEach(e => {
@@ -29,6 +48,31 @@ const Gallery = ({
 		? thumb
 		: `pandathumbs/${thumb.slice(0,2)}/${thumb.slice(2,4)}/${thumb}`
 	).replace(/_l\./, '_250.')
+
+	const renderPersonal = () => {
+		if (!featureFlags.isEnabled('personal') || !personal) {
+			return null;
+		}
+		return <div className={styles.personal}>
+			<div className={styles.metaSingleItem}>
+				<label className={styles.checkbox}>
+					<input type="checkbox" checked={personal.have} onChange={() => onChangePersonal({have: !personal.have})}/>
+					<span>Have</span>
+				</label>
+				<label className={styles.checkbox}>
+					<input type="checkbox" checked={personal.done} onChange={() => onChangePersonal({done: !personal.done})}/>
+					<span>Read</span>
+				</label>
+				<label className={styles.checkbox}>
+					<input type="checkbox" checked={personal.want} onChange={() => onChangePersonal({want: !personal.want})}/>
+					<span>Want</span>
+				</label>
+			</div>
+			<div className={styles.metaSingleItem}>
+				{personal.have && <a href={`panda://${gid}`}>Open cbz</a>}
+			</div>
+		</div>;
+	};
 
 	return (
 		<div className={styles.container}>
@@ -136,6 +180,16 @@ const Gallery = ({
 						{rating}
 					</span>
 				</div>
+				{featureFlags.isEnabled('personal') &&
+					<div className={styles.metaItem}>
+						<span className={styles.metaLabel}>My Rating:</span>
+						<span className={styles.metaValue}>
+							<Rating value={myRating} onClick={i => onChangePersonal({rating: i})} />
+							{myRating}
+						</span>
+					</div>
+				}
+				{personal && renderPersonal()}
 			</div>
 			<div className={styles.main}>
 				<div className={styles.header}>
@@ -146,25 +200,41 @@ const Gallery = ({
 						{parseEntity(title_jpn)}
 					</h3>
 				</div>
-				<div className={styles.tags}>
-					{Object.entries(tagList).map(([type, list]) => (
-						<div className={styles.tagLine} key={type}>
-							<div className={styles.tagType}>{type}:</div>
-							<div className={styles.tagList}>
-								{list.map(tag => (
-									<a
-										key={tag}
-										onClick={(event) => onSearch({
-											keyword: `${type === 'misc' ? '' : `${type}:`}${/\s/.test(tag) ? `"${tag}$"` : `${tag}$`}`
-										}, {
-											append: event.ctrlKey,
-										})}>
-										{tag}
-									</a>
-								))}
+				<div className={styles.content}>
+					<div className={styles.tags}>
+						{Object.entries(tagList).map(([type, list]) => (
+							<div className={styles.tagLine} key={type}>
+								<div className={styles.tagType}>{type}:</div>
+								<div className={styles.tagList}>
+									{list.map(tag => (
+										<a
+											key={tag}
+											onClick={(event) => onSearch({
+												keyword: `${type === 'misc' ? '' : `${type}:`}${/\s/.test(tag) ? `"${tag}$"` : `${tag}$`}`
+											}, {
+												append: event.ctrlKey,
+											})}>
+											{tag}
+										</a>
+									))}
+								</div>
 							</div>
+						))}
+					</div>
+					{featureFlags.isEnabled('personal') &&
+						<div className={styles.note}>
+							<a onClick={() => setEditNote(!isEditNote)}>{isEditNote ? 'Cancel' : 'Edit note'}</a>
+							{isEditNote
+								? <>
+									<textarea rows={5} cols={22}
+										onChange={(evt) => personal.note = evt.target.value}
+										value={personal.note} />
+									<a onClick={onNoteSave}>save</a>
+								</>
+								: personal.note && <div>{personal.note}</div>
+							}
 						</div>
-					))}
+					}
 				</div>
 			</div>
 			<Modal visible={visible} onClose={toggleTorrentModal}>

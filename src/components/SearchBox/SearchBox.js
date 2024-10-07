@@ -2,6 +2,11 @@ import React, { useEffect, useState } from 'react';
 import categoryList from '../../util/category';
 import styles from './SearchBox.css';
 import moment from 'moment';
+import featureFlags from 'src/util/featureFlags';
+
+/**
+ * @typedef {import('@types').SearchOptions} SearchOptions
+ */
 
 const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 	const defaultOptions = {
@@ -19,9 +24,10 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 		advance: 0,
 		fileSearch: 0,
 		applyOptionsToFileSearch: 0,
+		personally: {have: false, read: false, want: false},
 	};
 	const storedOptions = JSON.parse(localStorage.getItem('searchOptions')) || {};
-	/** @type {import('@types').SearchOptions} */
+	/** @type {SearchOptions} */
 	const options = {
 		...defaultOptions,
 		...storedOptions,
@@ -39,6 +45,7 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 	const [mindate, setMinDate] = useState(options.mindate);
 	const [maxdate, setMaxDate] = useState(options.maxdate);
 	const [showAdvance, setShowAdvance] = useState(+options.advance);
+	const [personally, setPersonally] = useState(options.personally || defaultOptions.personally);
 	const [showFileSearch, setShowFileSearch] = useState(+options.fileSearch);
 	const [applyOptionsToFileSearch, setApplyOptionsToFileSearch] = useState(false);
 
@@ -140,6 +147,7 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 			mindate,
 			maxdate,
 			advance: +showAdvance,
+			personally,
 		}
 	};
 
@@ -161,6 +169,10 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 			onFileSearch(formData, applyOptionsToFileSearch ? getAllOptions() : undefined);
 		}
 	};
+
+	const onPersonally = (type) => (event) => {
+		setPersonally({...personally, [type]: event.target.checked})
+	}
 
 	const onSubmit = (event) => {
 		event.preventDefault();
@@ -220,18 +232,35 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 			</div>
 			{showAdvance ? (
 				<div className={styles.advance}>
-					<label className={styles.advanceItem}>
-						<input type="checkbox" checked={expunged} onChange={updateExpunged} />
-						Show Expunged
-					</label>
-					<label className={styles.advanceItem}>
-						<input type="checkbox" checked={removed} onChange={updateRemoved} />
-						Show Removed
-					</label>
-					<label className={styles.advanceItem}>
-						<input type="checkbox" checked={replaced} onChange={updateReplaced} />
-						Show Replaced
-					</label>
+					<span className={styles.advanceItem}>
+					<label>Show</label>
+						<label>
+							<input type="checkbox" checked={expunged} onChange={updateExpunged} />
+							Expunged
+						</label>
+						<label>
+							<input type="checkbox" checked={removed} onChange={updateRemoved} />
+							Removed
+						</label>
+						<label>
+							<input type="checkbox" checked={replaced} onChange={updateReplaced} />
+							Replaced
+						</label>
+					</span>
+					{featureFlags.isEnabled('personal') && (
+						<>
+						<span className={styles.advanceItem}>
+							<label>Personally</label>
+							{Object.keys(defaultOptions.personally).map((p) => (
+							<label key={p}>
+								<input type="checkbox" checked={personally[p]} onChange={onPersonally(p)} />
+								{p.charAt(0).toUpperCase() + p.slice(1)}
+							</label>
+							))}
+						</span>
+						<span className={styles.advanceItem}></span>
+						</>
+					)}
 					<label className={styles.advanceItem}>
 						Show
 						<select value={limit} onChange={updateLimit} className={styles.select}>

@@ -1,5 +1,7 @@
+const config = require('../../config');
 const ConnectDB = require('../util/connectDB');
 const getResponse = require('../util/getResponse');
+const queryPersonal = require('../util/queryPersonal');
 const queryTags = require('../util/queryTags');
 const queryTorrents = require('../util/queryTorrents');
 
@@ -32,10 +34,12 @@ const list = async (req, res) => {
 		const rootGids = result.map(e => e.root_gid).filter(e => e);
 		const gidTags = await queryTags(conn, gids);
 		const gidTorrents = await queryTorrents(conn, rootGids);
+		const personal = config.features.personal && await queryPersonal(conn, gids);
 
 		result.forEach(e => {
 			e.tags = gidTags[e.gid] || [];
 			e.torrents = gidTorrents[e.root_gid] || [];
+			e.personal = personal[e.gid] || [];
 		});
 
 		return res.json(getResponse(result, 200, 'success', { total }));

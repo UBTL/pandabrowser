@@ -81,11 +81,16 @@
 	vertical-align: middle;
 	text-align: left;
 	line-height: 25px;
+	font-family: sans-serif;
 }
 
 .advanceItem {
 	display: inline-block;
 	width: 50%;
+}
+
+.advanceItem label {
+	margin: 0 6px 0 0;
 }
 
 .advanceItem * {
@@ -119,6 +124,7 @@
 
 .toggle {
 	margin-bottom: 5px;
+	font-family: sans-serif;
 }
 
 .imagePreview {
