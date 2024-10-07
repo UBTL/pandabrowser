@@ -24,6 +24,12 @@ const Home = ({ history }) => {
 	const totalStatus = useRef();
 
 	const query = queryString.parse(history.location.search.substr(1));
+	if (typeof query.personally === "string") {
+		query.personally = query.personally?.split(',').reduce((o,v) => {
+			o[v] = true;
+			return o;
+		}, {});
+	}
 	const { page = 1, limit = 10 } = query;
 	const totalPage = Math.ceil(total / +limit);
 
@@ -73,12 +79,17 @@ const Home = ({ history }) => {
 		});
 	};
 
+	/**
+	 * 
+	 * @param {SearchOptions} options 
+	 */
 	const onSearch = (options) => {
 		const sortedOptions = Object.keys(options).sort().reduce((pre, cur) => {
 			if (options[cur] !== "") {
-				if (cur === "personal") {
-					for (const [k, v] of Object.entries(options[cur])) {
-						if (v) pre[`personal_${k.toLowerCase()}`] = !!v;
+				if (cur === "personally") {
+					const vals = Object.keys(options[cur]).filter(k => options[cur][k]);
+					if (vals.length > 0) {
+						pre[cur] = vals.join(',');
 					}
 				} else {
 					pre[cur] = options[cur];
@@ -89,13 +100,17 @@ const Home = ({ history }) => {
 		history.push(`/?${queryString.stringify(sortedOptions)}`);
 	};
 
-	const onPersonal = (gid, type, value) => {
+	/**
+	 * 
+	 * @param {import('@types').Personal} args 
+	 */
+	const onPersonal = (args) => {
 		fetch('/api/personal', {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json'
 			},
-			body: JSON.stringify({gid, type, value}),
+			body: JSON.stringify(args),
 		})
 		.then(response => {
 			console.log(response)
@@ -148,6 +163,11 @@ const Home = ({ history }) => {
 		onSearch({ ...query, page });
 	};
 
+	/**
+	 * 
+	 * @param {SearchOptions} options 
+	 * @param {{ append?: any }} param1 
+	 */
 	const onGallerySearch = (options, { append } = {}) => {
 		const data = { ...query };
 		delete data.page;

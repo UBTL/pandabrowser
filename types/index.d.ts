@@ -13,6 +13,9 @@ export type SearchOptions = {
     maxdate: string,
     advance: boolean,
     fileSearch: boolean,
+    personally: {
+        [string]: boolean;
+    },
 }
 
 export type Category =
@@ -41,6 +44,16 @@ export type Torrent = {
     expunged: boolean,
 }
 
+export type Personal = {
+    gid: number,
+    have: boolean,
+    done: boolean,
+    want: boolean,
+    // `flags` bit(8),
+    rating: number,
+    note: string,
+}
+
 export type Gallery = {
     gid: number,
     token: string,
@@ -64,6 +77,12 @@ export type Gallery = {
     bc: number,
     tags: string[],
     torrents: Torrent[],
+    personal: Personal,
+}
+
+export type GalleryOptions = Gallery & {
+    onSearch: (SearchOptions, { append: any }?) => void,
+    onPersonal: (Personal) => void,
 }
 
 export type ImageSearchResult = Gallery & {bc: number}

@@ -12,7 +12,7 @@ const search = async (req, res) => {
 	let {
 		keyword = '', category = '', expunged = 1, minpage = 0, maxpage = 0, minrating = 0,
 		mindate = 0, maxdate = 0, removed = 1, replaced = 0, page = 1, limit = 10,
-		personal_have = 0, personal_read = 0, personal_want = 0,
+		personally = '',
 	} = Object.assign({}, req.params, req.query);
 
 	[page, limit] = [page, limit].map(e => e <= 0 ? 1 : parseInt(e, 10));
@@ -236,9 +236,11 @@ const search = async (req, res) => {
 	].filter(e => e).join(' AND ');
 
 	try {
-		const personalQuery = (personal_have || personal_read || personal_want)
+		const personalCols = ['have', 'done', 'want'].filter(p => personally?.split(',').includes(p));
+		const personalQuery = (personalCols.length > 0)
 			? `INNER JOIN gallery_personal AS gp ON (gallery.gid = gp.gid AND
-				(gp.have=${personal_have} OR gp.done=${personal_read} OR gp.want=${personal_want}))`
+				(${personalCols.map(p => `gp.${p}=1`).join(' OR ')})
+			)`
 			: ''
 		const pagedQuery = `SELECT gallery.*,
 				(select thumb from thumbnail where id=gallery.thumbnail_id) thumb
@@ -256,24 +258,27 @@ const search = async (req, res) => {
 			return res.json(getResponse([], 200, 'success', { total }));
 		}
 
-		const gids = result.map(e => e.gid);
-		const rootGids = result.map(e => e.root_gid).filter(e => e);
-		const gidTags = await queryTags(conn, gids);
-		const gidTorrents = await queryTorrents(conn, rootGids);
-		const personal = config.features.personal && await queryPersonal(conn, gids);
-
-		result.forEach(e => {
-			e.tags = gidTags[e.gid] || [];
-			e.torrents = gidTorrents[e.root_gid] || [];
-			e.personal = personal[e.gid] || {};
-		});
+		await populateAdditional(conn, result);
 
 		return res.json(getResponse(result, 200, 'success', { total }));
-	} catch (err) {
-		return res.status(500).json(getResponse(null, 500, 'internal server error', { err }));
 	} finally {
 		conn.end();
 	}
+};
+
+// TODO: move into reusable util to share with other app/actions
+const populateAdditional = async (conn, result) => {
+	const gids = result.map(e => e.gid);
+	const rootGids = result.map(e => e.root_gid).filter(e => e);
+	const gidTags = await queryTags(conn, gids);
+	const gidTorrents = await queryTorrents(conn, rootGids);
+	const personal = config.features.personal && await queryPersonal(conn, gids);
+
+	result.forEach(e => {
+		e.tags = gidTags[e.gid] || [];
+		e.torrents = gidTorrents[e.root_gid] || [];
+		e.personal = personal[e.gid] || {};
+	});
 };
 
 module.exports = search;

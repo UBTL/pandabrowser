@@ -4,6 +4,10 @@ import styles from './SearchBox.css';
 import moment from 'moment';
 import featureFlags from 'src/util/featureFlags';
 
+/**
+ * @typedef {import('@types').SearchOptions} SearchOptions
+ */
+
 const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 	const defaultOptions = {
 		category: 1023,
@@ -20,9 +24,10 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 		advance: 0,
 		fileSearch: 0,
 		applyOptionsToFileSearch: 0,
+		personally: {have: false, read: false, want: false},
 	};
 	const storedOptions = JSON.parse(localStorage.getItem('searchOptions')) || {};
-	/** @type {import('@types').SearchOptions} */
+	/** @type {SearchOptions} */
 	const options = {
 		...defaultOptions,
 		...storedOptions,
@@ -40,7 +45,7 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 	const [mindate, setMinDate] = useState(options.mindate);
 	const [maxdate, setMaxDate] = useState(options.maxdate);
 	const [showAdvance, setShowAdvance] = useState(+options.advance);
-	const [personal, setPersonal] = useState({});
+	const [personally, setPersonally] = useState(options.personally || defaultOptions.personally);
 	const [showFileSearch, setShowFileSearch] = useState(+options.fileSearch);
 	const [applyOptionsToFileSearch, setApplyOptionsToFileSearch] = useState(false);
 
@@ -142,7 +147,7 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 			mindate,
 			maxdate,
 			advance: +showAdvance,
-			personal,
+			personally,
 		}
 	};
 
@@ -165,8 +170,8 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 		}
 	};
 
-	const onPersonal = (type) => (event) => {
-		setPersonal({...personal, [type]: event.target.checked})
+	const onPersonally = (type) => (event) => {
+		setPersonally({...personally, [type]: event.target.checked})
 	}
 
 	const onSubmit = (event) => {
@@ -246,10 +251,10 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 						<>
 						<span className={styles.advanceItem}>
 							<label>Personally</label>
-							{['Have','Read','Want'].map(p => (
+							{Object.keys(defaultOptions.personally).map((p) => (
 							<label key={p}>
-								<input type="checkbox" checked={!!personal[p]} onChange={onPersonal(p)} />
-								{p}
+								<input type="checkbox" checked={personally[p]} onChange={onPersonally(p)} />
+								{p.charAt(0).toUpperCase() + p.slice(1)}
 							</label>
 							))}
 						</span>
