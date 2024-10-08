@@ -1,7 +1,7 @@
 module.exports = {
 	dbHost: 'localhost',
 	dbPort: 3306,
-	dbName: 'panda',
+	dbName: 'pandadb',
 	dbUser: 'root',
 	dbPass: '69',
 	port: 8880,
@@ -9,5 +9,5 @@ module.exports = {
 	corsOrigin: '*',
 	webui: true,
 	webuiPath: 'frontend',
-	features: { personal: false },
+	features: { personal: true },
 };
