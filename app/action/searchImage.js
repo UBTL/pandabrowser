@@ -3,6 +3,7 @@ const ConnectDB = require('../util/connectDB');
 const getResponse = require('../util/getResponse');
 const queryTags = require("../util/queryTags");
 const queryTorrents = require("../util/queryTorrents");
+const config = require("../../config");
 
 const searchImage = async (req, res) => {
 	if (!req.file) {
@@ -20,16 +21,21 @@ const searchImage = async (req, res) => {
 	try {
 		const galFields = (out === 'gid' ? 'g.gid' : 'g.*');
 
-		const result = await conn.query(
-			`WITH phash AS (
-				select id, thumb,
-					bit_count(? ^ ph0) + bit_count(? ^ ph1) +
-					bit_count(? ^ ph2) + bit_count(? ^ ph3) as bc
+		const bcxorClause = (col) => (
+			config.dbType == 'sqlite'
+			? `bit_count(xor(?, ph${col}))`
+			: `bit_count(? ^ ph${col})`
+		);
+		const sql = `WITH phash AS (
+				select id, thumb, ${[0,1,2,3].map(bcxorClause).join(' + ')} as bc
 				from thumbnail where bitcount between ? and ?
 			)
 			SELECT ${galFields}, thumb, bc FROM gallery g
 			INNER JOIN phash h ON g.thumbnail_id=h.id
-			WHERE bc <= ? ORDER BY bc, posted;`,
+			WHERE bc <= ? ORDER BY bc, posted`;
+
+		const result = await conn.query(
+			sql,
 			phints.concat([bitcount - hammdist, bitcount + hammdist, hammdist])
 		);
 
@@ -46,8 +52,6 @@ const searchImage = async (req, res) => {
 		}
 
 		return res.json(getResponse(result, 200, 'success', { total: result.length }));
-	} catch (err) {
-		return res.status(500).json(getResponse(null, 500, 'internal server error', { err }));
 	} finally {
 		conn.end();
 	}
