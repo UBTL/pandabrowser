@@ -5,7 +5,6 @@ import List from '../List';
 import styles from './Home.css';
 import Pager from '../Pager';
 import { categoryNameMap } from 'src/util/category';
-import featureFlags from 'src/util/featureFlags';
 
 /**
  * @typedef {import('@types').SearchOptions} SearchOptions
@@ -19,7 +18,6 @@ const Home = ({ history }) => {
 	const [startTime, setStartTime] = useState(0);
 	const [endTime, setEndTime] = useState(0);
 	const [isPagerVisible, setPagerVisible] = useState(false);
-	const [features, setFeatures] = useState(featureFlags.flags);
 	const aborter = useRef();
 	const totalStatus = useRef();
 

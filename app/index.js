@@ -9,6 +9,7 @@ const { port = 8880, cors = false, corsOrigin, webui, webuiPath } = config;
 const app = express();
 
 app.use(useCors(cors, corsOrigin));
+app.use(express.json());
 if (webui) {
 	app.use(express.static(path.resolve(__dirname, '../', webuiPath)));
 }
