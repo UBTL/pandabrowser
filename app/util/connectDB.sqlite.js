@@ -87,7 +87,6 @@ class ConnectDB {
 		query = formatQuery(query, params)
 		try {
 			const stmt = dbConnection.prepare(query);
-			console.log(query, params)
 			// FIXME: a hack, query/execute should be separated
 			if (query.match(/^select|^with/i)) {
 				return stmt.all(...flatten(params));
