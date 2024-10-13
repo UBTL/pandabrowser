@@ -1,3 +1,4 @@
+const config = require('../../config');
 const ConnectDB = require('../util/connectDB');
 const getResponse = require('../util/getResponse');
 const normalizedTag = require('../util/normalizedTag');
@@ -23,8 +24,9 @@ const tagList = async (req, res) => {
 	const conn = await new ConnectDB().connect();
 	try {
 		const thumbQuery = '(select thumb from thumbnail where id=a.thumbnail_id) thumb';
+		const indexClause = config.dbType == 'sqlite' ? '' : 'FORCE INDEX(posted)';
 		const result = await conn.query(
-			`SELECT a.*, ${thumbQuery} FROM gallery AS a FORCE INDEX(posted) INNER JOIN (
+			`SELECT a.*, ${thumbQuery} FROM gallery AS a ${indexClause} INNER JOIN (
 				SELECT a.* FROM gid_tid AS a INNER JOIN (
 					SELECT id FROM tag WHERE name IN (?)
 				) AS b ON a.tid = b.id GROUP BY a.gid HAVING COUNT(a.gid) = ? ORDER BY NULL
