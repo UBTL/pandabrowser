@@ -1,8 +1,7 @@
 const ConnectDB = require('../util/connectDB');
 const getResponse = require('../util/getResponse');
 const { categoryMap } = require('../util/category');
-const queryTags = require('../util/queryTags');
-const queryTorrents = require('../util/queryTorrents');
+const { populateGalleryData } = require('../util/queryCommon');
 
 const list = async (req, res) => {
 	let { category = '', page = 1, limit = 10 } = Object.assign({}, req.params, req.query);
@@ -51,15 +50,7 @@ const list = async (req, res) => {
 			return res.json(getResponse([], 200, 'success', { total }));
 		}
 
-		const gids = result.map(e => e.gid);
-		const rootGids = result.map(e => e.root_gid).filter(e => e);
-		const gidTags = await queryTags(conn, gids);
-		const gidTorrents = await queryTorrents(conn, rootGids);
-
-		result.forEach(e => {
-			e.tags = gidTags[e.gid] || [];
-			e.torrents = gidTorrents[e.root_gid] || [];
-		});
+		await populateGalleryData(conn, result);
 
 		return res.json(getResponse(result, 200, 'success', { total }));
 	} catch (err) {
