@@ -1,5 +1,6 @@
 const ConnectDB = require('../util/connectDB');
 const getResponse = require('../util/getResponse');
+const { upsertClause } = require('../util/queryCommon');
 
 /**
  * 
@@ -15,8 +16,9 @@ const personal = async (req, res) => {
 	try {
 		const paramStr = Array(cols.length).fill('?').join(',');
 		const result = await conn.query(
-			`INSERT INTO gallery_personal (${cols.join(',')}) VALUES (${paramStr})
-			ON DUPLICATE KEY UPDATE ${cols.map(c => `${c}=VALUES(${c})`).join(',')}`,
+			`INSERT INTO gallery_personal (${cols.join(',')})
+				VALUES (${paramStr})
+				${upsertClause(cols, 'gid')}`,
 			cols.map(c => req.body[c])
 		);
 		return res.json(getResponse(result, 200, 'success', {}));

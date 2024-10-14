@@ -3,3 +3,6 @@ frontend/pandathumbs
 mariadb
 dist
 *.sql.gz
+db/*.db
+*-shm
+*-wal
