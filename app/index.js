@@ -11,6 +11,9 @@ const app = express();
 app.use(useCors(cors, corsOrigin));
 app.use(express.json());
 if (webui) {
+	if (process.pkg) {
+		app.use('/pandathumbs', express.static(path.resolve(process.cwd(), 'pandathumbs')));
+	}
 	app.use(express.static(path.resolve(__dirname, '../', webuiPath)));
 }
 app.all('/', (req, res) => {
@@ -20,7 +23,7 @@ app.all('/', (req, res) => {
 });
 app.use('/', router);
 app.listen(port, () => {
-	console.log(`Server is now listening on port ${port}`);
+	console.log(`Server is now listening at http://localhost:${port}`);
 });
 
 app.on('error', (err) => {

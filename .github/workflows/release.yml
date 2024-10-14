@@ -1,0 +1,38 @@
+name: Build and release
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+    inputs:
+      TARGETS:
+        description: 'Targets'
+        default: 'linux,macos,win'
+env:
+  TARGETS: ${{ inputs.TARGETS || 'linux,macos,win' }}
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/hydrogen'
+      #- run: yarn --frozen-lockfile
+      - run: npm ci
+      - run: npm install --global pkg
+      - run: npm run build
+      - name: Build
+        run: pkg -o panda-browser -t "${{ env.TARGETS }}" -c package.json index.js
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            panda-browser-linux
+            panda-browser-macos
+            panda-browser-win.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

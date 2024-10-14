@@ -20,6 +20,16 @@
     "dev": "webpack-dev-server --inline -d --watch --hot",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "pkg": {
+    "assets": [
+      "node_modules/better-sqlite3/build/Release/**",
+      "node_modules/sharp/build/Release/**",
+      "node_modules/sharp/vendor/**/lib/*",
+      "app/assets/*",
+      "frontend/**/*",
+      "scripts/*"
+    ]
+  },
   "author": "ccloli",
   "license": "GPL-3.0",
   "dependencies": {
@@ -28,7 +38,7 @@
     "fast-glob": "^3.3.2",
     "multer": "^1.4.5-lts.1",
     "mysql": "^2.18.1",
-    "sharp": "^0.33.5",
+    "sharp": "^0.31.3",
     "sharp-phash": "^2.1.0",
     "tqdm": "^2.0.3"
   },

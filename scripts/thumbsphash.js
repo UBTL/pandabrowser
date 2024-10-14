@@ -61,7 +61,8 @@ class ThumbsPHash {
 		console.log(`found ${hashed.length} hashes in db (${Date.now()-t1}ms)`);
 
 		t1 = Date.now();
-		const thumbdir = path.join(config.webuiPath, 'pandathumbs', '**');
+		const basedir = process.pkg ? process.cwd() : config.webuiPath;
+		const thumbdir = path.join(basedir, 'pandathumbs', '**');
 		const files = await fg.glob(thumbdir, { onlyFiles: true });
 		console.log(`found ${files.length} thumb files (${Date.now()-t1}ms)`);
 
