@@ -135,6 +135,9 @@ Query params:
 
 Returns: xml
 
+Example:
+- http://localhost:6969/api/comicInfo/?gid=838471
+
 ### `/api/tag/:tag`  
 
 Get a list of galleries which matches ALL of specific tags, `tag` can be a list split with `,`, then it will returns the matched galleries.
