@@ -1,4 +1,6 @@
 module.exports = {
+	// dbType: 'sqlite',
+	dbPath: 'db',
 	dbHost: 'localhost',
 	dbPort: 3306,
 	dbName: 'pandadb',

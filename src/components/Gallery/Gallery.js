@@ -20,18 +20,17 @@ const Gallery = ({
 }) => {
 	const [visible, setVisible] = useState(false);
 	const [isEditNote, setEditNote] = useState(false);
-	const [myRating, setMyRating] = useState(personal?.rating);
+	const [personalVal, setPersonalVal] = useState(personal);
+	const [note, setNote] = useState(personal?.note || '');
 	const toggleTorrentModal = () => setVisible(!visible);
 
 	const onChangePersonal = (newPersonal) => {
-		if (newPersonal.rating) {
-			setMyRating(newPersonal.rating);
-		}
-		onPersonal({...personal, ...newPersonal});
+		setPersonalVal({...personalVal, ...newPersonal});
+		onPersonal({...personalVal, ...newPersonal, gid});
 	};
 
 	const onNoteSave = () => {
-		onPersonal(personal);
+		onChangePersonal({note});
 		setEditNote(false);
 	};
 
@@ -56,20 +55,20 @@ const Gallery = ({
 		return <div className={styles.personal}>
 			<div className={styles.metaSingleItem}>
 				<label className={styles.checkbox}>
-					<input type="checkbox" checked={personal.have} onChange={() => onChangePersonal({have: !personal.have})}/>
+					<input type="checkbox" checked={!!personalVal?.have} onChange={(e) => onChangePersonal({have: e.target.checked})}/>
 					<span>Have</span>
 				</label>
 				<label className={styles.checkbox}>
-					<input type="checkbox" checked={personal.done} onChange={() => onChangePersonal({done: !personal.done})}/>
+					<input type="checkbox" checked={!!personalVal?.done} onChange={(e) => onChangePersonal({done: e.target.checked})}/>
 					<span>Read</span>
 				</label>
 				<label className={styles.checkbox}>
-					<input type="checkbox" checked={personal.want} onChange={() => onChangePersonal({want: !personal.want})}/>
+					<input type="checkbox" checked={!!personalVal?.want} onChange={(e) => onChangePersonal({want: e.target.checked})}/>
 					<span>Want</span>
 				</label>
 			</div>
 			<div className={styles.metaSingleItem}>
-				{personal.have && <a href={`panda://${gid}`}>Open cbz</a>}
+				{personalVal?.have && <a href={`panda://${gid}`}>Open cbz</a>}
 			</div>
 		</div>;
 	};
@@ -184,8 +183,8 @@ const Gallery = ({
 					<div className={styles.metaItem}>
 						<span className={styles.metaLabel}>My Rating:</span>
 						<span className={styles.metaValue}>
-							<Rating value={myRating} onClick={i => onChangePersonal({rating: i})} />
-							{myRating}
+							<Rating value={personalVal?.rating} onClick={i => onChangePersonal({rating: i})} />
+							{personalVal?.rating}
 						</span>
 					</div>
 				}
@@ -227,11 +226,11 @@ const Gallery = ({
 							{isEditNote
 								? <>
 									<textarea rows={5} cols={22}
-										onChange={(evt) => personal.note = evt.target.value}
-										value={personal.note} />
+										onChange={(evt) => setNote(evt.target.value)}
+										value={note} />
 									<a onClick={onNoteSave}>save</a>
 								</>
-								: personal.note && <div>{personal.note}</div>
+								: note && <div>{note}</div>
 							}
 						</div>
 					}

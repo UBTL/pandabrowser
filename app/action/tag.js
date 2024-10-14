@@ -1,8 +1,8 @@
+const config = require('../../config');
 const ConnectDB = require('../util/connectDB');
 const getResponse = require('../util/getResponse');
-const queryTags = require('../util/queryTags');
-const queryTorrents = require('../util/queryTorrents');
 const normalizedTag = require('../util/normalizedTag');
+const { populateGalleryData } = require('../util/queryCommon');
 
 const tagList = async (req, res) => {
 	let { tag, page = 1, limit = 10 } = Object.assign({}, req.params, req.query);
@@ -24,8 +24,9 @@ const tagList = async (req, res) => {
 	const conn = await new ConnectDB().connect();
 	try {
 		const thumbQuery = '(select thumb from thumbnail where id=a.thumbnail_id) thumb';
+		const indexClause = config.dbType == 'sqlite' ? '' : 'FORCE INDEX(posted)';
 		const result = await conn.query(
-			`SELECT a.*, ${thumbQuery} FROM gallery AS a FORCE INDEX(posted) INNER JOIN (
+			`SELECT a.*, ${thumbQuery} FROM gallery AS a ${indexClause} INNER JOIN (
 				SELECT a.* FROM gid_tid AS a INNER JOIN (
 					SELECT id FROM tag WHERE name IN (?)
 				) AS b ON a.tid = b.id GROUP BY a.gid HAVING COUNT(a.gid) = ? ORDER BY NULL
@@ -45,15 +46,7 @@ const tagList = async (req, res) => {
 			return res.json(getResponse([], 200, 'success', { total }));
 		}
 
-		const gids = result.map(e => e.gid);
-		const rootGids = result.map(e => e.root_gid).filter(e => e);
-		const gidTags = await queryTags(conn, gids);
-		const gidTorrents = await queryTorrents(conn, rootGids);
-
-		result.forEach(e => {
-			e.tags = gidTags[e.gid] || [];
-			e.torrents = gidTorrents[e.root_gid] || [];
-		});
+		await populateGalleryData(conn, result);
 
 		return res.json(getResponse(result, 200, 'success', { total }));
 	} catch (err) {

@@ -1,21 +1,16 @@
 const cluster = require('cluster');
 const fg = require('fast-glob');
 const fs = require("fs");
-const mysql = require('mysql');
 const path = require('path');
 const phash = require("sharp-phash");
 const tqdm = require('tqdm');
-
 const config = require('../config');
+const ConnectDB = require('../app/util/connectDB');
+const { upsertClause } = require('../app/util/queryCommon');
 
 const numCPUs = require('os').cpus().length;
 
-/**
-* @typedef {import('mysql/lib/Connection')} Connection
-*/
-
 async function clusterControl(numWorkers, work, itemDoneCb) {
-
 	// assign work sequentially to reduce HDD seeking
 	const getRoundRobinBatch = (workerId) => {
 		const items = [];
@@ -43,41 +38,14 @@ async function clusterControl(numWorkers, work, itemDoneCb) {
 }
 
 class ThumbsPHash {
-	/**
-	 * 
-	 * @returns {Connection}
-	 */
-	getDb() {
-		if (!this._db) {
-			this._db = mysql.createConnection({
-				host: config.dbHost,
-				port: config.dbPort,
-				user: config.dbUser,
-				password: config.dbPass,
-				database: config.dbName,
-				timeout: 10e3,
-			});
-			this._db.on('error', (err) => {
-				console.error(err);
-			});
-		}
-		return this._db;
+	constructor() {
+		this.db = null;
 	}
-
-	query(...args) {
-		return new Promise((resolve, reject) => {
-			try {
-				this.getDb().query(...args, (error, results) => {
-					if (error) {
-						reject(error);
-						return;
-					}
-					resolve(results);
-				});
-			} catch (err) {
-				reject(err);
-			}
-		});
+	async query(...args) {
+		if (!this.db) {
+			this.db = await new ConnectDB().connect();
+		}
+		return this.db.query(...args);
 	}
 
 	async getHashedThumbs() {
@@ -102,20 +70,16 @@ class ThumbsPHash {
 	}
 
 	async saveThumbnailHash(rec) {
-		const cols = ['thumb', 'ph0', 'ph1', 'ph2', 'ph3', 'bitcount'];
+		const updateCols = ['ph0', 'ph1', 'ph2', 'ph3', 'bitcount'];
+		const cols = ['thumb'].concat(updateCols);
 		const sql = `INSERT INTO thumbnail (${cols})
-			VALUES (?, ?,?,?,?, ?)
-			ON DUPLICATE KEY UPDATE
-				${[0,1,2,3].map(i => `ph${i}=VALUES(ph${i})`).join(',')},
-				bitcount=VALUES(bitcount);`;
-
+			VALUES (${cols.map(c => '?').join(',')})
+			${upsertClause(updateCols, 'thumb')}`;
 		return this.query(sql, cols.map((c) => rec[c]));
 	}
 
 	async run() {
 		try {
-			await this.query('SET NAMES UTF8MB4');
-
 			console.log("checking status ...");
 			const toProcess = await this.getFilesToProcess();
 			console.log(`found ${toProcess.length} files to process`);
@@ -145,7 +109,7 @@ class ThumbsPHash {
 		} catch (err) {
 			console.error(err.stack);
 		} finally {
-			this.getDb().end();
+			this.db?.end();
 			process.exit();
 		}
 	}

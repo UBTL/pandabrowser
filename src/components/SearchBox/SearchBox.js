@@ -24,7 +24,7 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 		advance: 0,
 		fileSearch: 0,
 		applyOptionsToFileSearch: 0,
-		personally: {have: false, read: false, want: false},
+		personally: {have: false, done: false, want: false},
 	};
 	const storedOptions = JSON.parse(localStorage.getItem('searchOptions')) || {};
 	/** @type {SearchOptions} */
@@ -45,7 +45,7 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 	const [mindate, setMinDate] = useState(options.mindate);
 	const [maxdate, setMaxDate] = useState(options.maxdate);
 	const [showAdvance, setShowAdvance] = useState(+options.advance);
-	const [personally, setPersonally] = useState(options.personally || defaultOptions.personally);
+	const [personally, setPersonally] = useState(options.personally);
 	const [showFileSearch, setShowFileSearch] = useState(+options.fileSearch);
 	const [applyOptionsToFileSearch, setApplyOptionsToFileSearch] = useState(false);
 
@@ -251,10 +251,10 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 						<>
 						<span className={styles.advanceItem}>
 							<label>Personally</label>
-							{Object.keys(defaultOptions.personally).map((p) => (
+							{Object.entries({have: 'Have', done: 'Read', want: 'Want'}).map(([p, lbl]) => (
 							<label key={p}>
-								<input type="checkbox" checked={personally[p]} onChange={onPersonally(p)} />
-								{p.charAt(0).toUpperCase() + p.slice(1)}
+								<input type="checkbox" checked={!!personally[p]} onChange={onPersonally(p)} />
+								{lbl}
 							</label>
 							))}
 						</span>
@@ -307,9 +307,11 @@ const SearchBox = ({ options: passedOptions = {}, onSearch, onFileSearch }) => {
 						<span className={styles.advanceItem}>
 							<input type="submit" value="File Search" />
 						</span>
-						<label className={styles.advanceItem} title="Except pages and tags">
-							<input type="checkbox" onChange={updateApplyOptionsToFileSearch} /> Apply search options
-						</label>
+						<span className={styles.advanceItem}>
+							<label title="Except pages and tags">
+								<input type="checkbox" onChange={updateApplyOptionsToFileSearch} /> Apply search options
+							</label>
+						</span>
 					</span>
 				</div>
 			</form>
