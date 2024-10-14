@@ -23,6 +23,7 @@
   },
   "pkg": {
     "assets": [
+      "node_modules/better-sqlite3/build/Release/**",
       "node_modules/sharp/build/Release/**",
       "node_modules/sharp/vendor/**/lib/*",
       "app/assets/*",
