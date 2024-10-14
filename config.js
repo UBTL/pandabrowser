@@ -1,5 +1,5 @@
 module.exports = {
-	// dbType: 'sqlite',
+	...process.pkg && { dbType: 'sqlite' },
 	dbPath: 'db',
 	dbHost: 'localhost',
 	dbPort: 3306,
@@ -11,5 +11,5 @@ module.exports = {
 	corsOrigin: '*',
 	webui: true,
 	webuiPath: 'frontend',
-	features: { personal: false },
+	features: { personal: !!process.pkg },
 };
