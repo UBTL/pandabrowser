@@ -4,7 +4,8 @@ An offline E-hentai browser for archival purposes, keeping Hentai history around
 ## Requirements
 
 - Node.js 20+
-
+- Bun 1.1 ( https://bun.sh/ )
+  
 ## Optional
 - MySQL 5.3+ / MariaDB 10+
 
@@ -31,17 +32,17 @@ To interact with the containers:
 
 ## Setup & Start Up manually
 
-0. Run `npm install` (or `yarn` if you prefer)
+0. Run `npm install` or `bun install`
 
 1. Download the provided database metadata dump files (Either the SQLite or SQL files) for the SQLite files put them inside the /db/ folder and for the SQL files upload it into MySQL.
 
 2. Edit `config.js`, set database username, password, database name, etc. if you go with something different.
 
-3. Run `npm run build` to build up webpack and then `npm start`, the server should be run on `8880` port by default config
+3. Run `npm run build` or `bun run build` to build up webpack and then `npm start` or `bun start`, the server should be run on `8880` port by default config
 
 ### The server quits when I exit the terminal  
 
-Try `npm start &`, or use `PM2` or `forever` to keep it running in background, for Windows users there is not much of an alternative to use here. 
+Try `npm start &`, or use `PM2` or `forever` to keep it running in background (for those using vanilla nodejs), for Windows users there is not much of an alternative to use here. 
 
 For pm2 you can do:
 sudo pm2 start npm --name "PANDADB" -- start
