@@ -58,6 +58,6 @@ Over frontend folder, there the pandathumbnails folder should be located at.
 
 - Andran with helping of the dumping and sorting of the thumbnails along side figuring out how to patch together missing stuff on myself and other IT related shenanigans.
 
-- and you the community and specially those that has [Donated to keep me doing this stuff around](https://donate.unclebane.xyz/) , you are the Big Guys that allow me to crash these planes.
+- and you the community and specially those that has [Donated to keep me doing this stuff around](https://ubtl.nx34.xyz/) , you are the Big Guys that allow me to crash these planes.
 
-GPLv3
+At the time of writing, Im still reachable (sometimes) through here: https://chat.nx34.xyz
